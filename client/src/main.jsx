@@ -5,12 +5,15 @@ import App from './App.jsx'
 
 import { SettingsProvider } from './context/SettingsContext.jsx'
 import { MusicProvider } from './context/MusicContext.jsx'
+import { NotificationProvider } from './context/NotificationContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
       <MusicProvider>
-        <App />
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
       </MusicProvider>
     </SettingsProvider>
   </StrictMode>,

@@ -9,6 +9,7 @@ import StatusBar from './components/os/StatusBar';
 import ControlCenter from './components/os/ControlCenter';
 import Dock from './components/os/Dock';
 import Window from './components/Window';
+import NotificationTray from './components/os/NotificationTray';
 
 // Apps
 import GoolagApp from './apps/GoolagApp';
@@ -35,6 +36,7 @@ const AppIcon = ({ label, icon: Icon, onClick }) => (
 );
 
 import { useSettings } from './context/SettingsContext';
+import { useNotifications } from './context/NotificationContext';
 
 function App() {
   const { settings } = useSettings();
@@ -64,22 +66,30 @@ function App() {
   const [weather, setWeather] = useState({ temp: '--', condition: 'Scanning...', location: 'Locating...' });
   const [coords, setCoords] = useState(null);
 
-  // Broadcast State
-  const [broadcast, setBroadcast] = useState(null);
+  const { addNotification } = useNotifications();
 
   // Connect to Backend & Fetch Weather
   useEffect(() => {
     // Socket
     const socket = io('http://localhost:3000');
-    socket.on('connect', () => { setServerStatus('CONNECTED'); });
-    socket.on('disconnect', () => { setServerStatus('OFFLINE'); });
+    socket.on('connect', () => {
+      setServerStatus('CONNECTED');
+      addNotification({ title: 'Kernel', message: 'System link established.', type: 'success' });
+    });
+    socket.on('disconnect', () => {
+      setServerStatus('OFFLINE');
+      addNotification({ title: 'Kernel', message: 'System link lost.', type: 'error', persistent: true });
+    });
     socket.on('system_status', (stats) => setSysStats(stats));
 
     // Admin Broadcasts
     socket.on('broadcast_notification', (data) => {
-      setBroadcast(data);
-      // Auto-hide after 10 seconds
-      setTimeout(() => setBroadcast(null), 10000);
+      addNotification({
+        title: 'Emergency Broadcast',
+        message: data.message,
+        type: 'broadcast',
+        persistent: true
+      });
     });
 
     const fetchWeatherData = async (lat, lon) => {
@@ -238,39 +248,7 @@ function App() {
       </motion.div>
 
       {/* 4. Overlays */}
-      {/* Admin Broadcast Notification */}
-      <AnimatePresence>
-        {broadcast && (
-          <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-lg"
-          >
-            <div className="bg-red-900/60 backdrop-blur-2xl border border-red-500/30 rounded-3xl p-6 shadow-2xl shadow-red-950/40 flex items-start gap-4 ring-1 ring-white/10">
-              <div className="w-10 h-10 rounded-2xl bg-red-600 flex items-center justify-center shrink-0 shadow-lg shadow-red-900/40">
-                <AlertCircle className="text-white" size={24} />
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-center mb-1">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-100 opacity-80">System Broadcast</h4>
-                  <span className="text-[9px] font-mono opacity-40">Just Now</span>
-                </div>
-                <p className="text-sm font-bold text-white leading-relaxed">
-                  {broadcast.message}
-                </p>
-              </div>
-              <button
-                onClick={() => setBroadcast(null)}
-                className="text-white/40 hover:text-white p-1"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+      <NotificationTray />
       <ControlCenter isOpen={isControlCenterOpen} onClose={() => setIsControlCenterOpen(false)} />
 
       {/* 5. Apps */}
