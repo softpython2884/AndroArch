@@ -135,7 +135,7 @@ const LockScreen = ({ isLocked, onUnlock }) => {
                                     <div
                                         key={i}
                                         className={`w-4 h-4 rounded-full border border-white/30 transition-all duration-200 ${i < pin.length
-                                                ? error ? "bg-red-500 border-red-500" : "bg-white border-white"
+                                                ? (error ? "bg-red-500 border-red-500" : "bg-white border-white")
                                                 : "bg-transparent"
                                             }`}
                                     />

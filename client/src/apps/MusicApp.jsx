@@ -11,9 +11,14 @@ const MusicApp = () => {
         url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" // Copyright Free Placeholder
     });
 
-    const audioRef = useRef(new Audio(track.url));
+    const audioRef = useRef(null);
 
     useEffect(() => {
+        audioRef.current = new Audio(track.url);
+    }, [track.url]);
+
+    useEffect(() => {
+        if (!audioRef.current) return;
         const audio = audioRef.current;
         audio.loop = true;
 
@@ -31,12 +36,13 @@ const MusicApp = () => {
     }, []);
 
     useEffect(() => {
+        if (!audioRef.current) return;
         if (isPlaying) {
             audioRef.current.play().catch(e => console.error("Audio Play Error:", e));
         } else {
             audioRef.current.pause();
         }
-    }, [isPlaying]);
+    }, [isPlaying, audioRef.current]);
 
     const formatTime = (time) => {
         if (!time || isNaN(time)) return "0:00";

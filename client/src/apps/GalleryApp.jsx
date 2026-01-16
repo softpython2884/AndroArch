@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Image as ImageIcon } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
+import wallpaper from '../assets/wallpaper.png'; // Import default
 
 const defaultImages = [
+    { url: wallpaper }, // Default OS Wallpaper
     { url: 'https://images.unsplash.com/photo-1542202619-3c3e80c98f80' },
     { url: 'https://images.unsplash.com/photo-1549488390-e555ae245df8' },
     { url: 'https://images.unsplash.com/photo-1518098268026-4e1c91a28a63' },

@@ -25,7 +25,7 @@ const Window = ({ isOpen, onClose, title, children }) => {
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 overflow-auto bg-sub-black relative">
+                    <div className="flex-1 overflow-auto bg-gray-900/90 relative">
                         {children}
                     </div>
 

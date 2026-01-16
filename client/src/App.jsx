@@ -20,6 +20,7 @@ import SettingsApp from './apps/SettingsApp';
 import MusicApp from './apps/MusicApp';
 import SystemMonitorApp from './apps/SystemMonitorApp';
 import CameraApp from './apps/CameraApp';
+import WeatherApp from './apps/WeatherApp';
 
 import wallpaper from './assets/wallpaper.png';
 
@@ -46,12 +47,77 @@ function App() {
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [openApp, setOpenApp] = useState(null);
 
-  // Connect to Backend
+  // Weather State
+  const [weather, setWeather] = useState({ temp: '--', condition: 'Scanning...', location: 'Locating...' });
+  const [coords, setCoords] = useState(null);
+
+  // Connect to Backend & Fetch Weather
   useEffect(() => {
+    // Socket
     const socket = io('http://localhost:3000');
     socket.on('connect', () => { setServerStatus('CONNECTED'); });
     socket.on('disconnect', () => { setServerStatus('OFFLINE'); });
     socket.on('system_status', (stats) => setSysStats(stats));
+
+    const fetchWeatherData = async (lat, lon) => {
+      // 1. Fetch Location
+      try {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`, {
+          headers: { 'User-Agent': 'AndroArch-OS/1.0' }
+        });
+        const geoData = await geoRes.json();
+        const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.municipality || "Unknown Sector";
+        setWeather(prev => ({ ...prev, location: city }));
+      } catch (e) {
+        console.warn("Location fetch failed", e);
+        setWeather(prev => ({ ...prev, location: "Unknown Sector" }));
+      }
+
+      // 2. Fetch Weather
+      try {
+        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`);
+        const data = await weatherRes.json();
+
+        const code = data.current.weather_code;
+        let condition = "Clear";
+        if (code > 0 && code <= 3) condition = "Cloudy";
+        if (code >= 45 && code <= 48) condition = "Fog";
+        if (code >= 51 && code <= 67) condition = "Rain";
+        if (code >= 71) condition = "Snow";
+        if (code >= 95) condition = "Storm";
+
+        setWeather(prev => ({
+          ...prev,
+          temp: Math.round(data.current.temperature_2m),
+          condition: condition
+        }));
+      } catch (e) {
+        console.error("Weather fetch error", e);
+        setWeather(prev => ({ ...prev, temp: '--', condition: 'Offline' }));
+      }
+    };
+
+    // Geolocation API
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCoords({ latitude, longitude });
+          fetchWeatherData(latitude, longitude);
+        },
+        (error) => {
+          console.error("Geo Access Denied:", error);
+          // Fallback (Strasbourg)
+          setCoords({ latitude: 48.5839, longitude: 7.7455 });
+          fetchWeatherData(48.5839, 7.7455);
+        }
+      );
+    } else {
+      // Fallback
+      setCoords({ latitude: 48.5839, longitude: 7.7455 });
+      fetchWeatherData(48.5839, 7.7455);
+    }
+
     return () => socket.disconnect();
   }, []);
 
@@ -88,21 +154,24 @@ function App() {
         <div className="flex-1 px-6 flex flex-col pt-12 pb-32 z-10">
 
           {/* Widgets Area */}
-          <div className="w-full h-40 bg-white/5 rounded-[30px] border border-white/10 backdrop-blur-md p-6 mb-8 flex flex-col justify-between shadow-2xl backdrop-saturate-150 relative overflow-hidden group">
+          <div
+            onClick={() => setOpenApp('weather')}
+            className="w-full h-40 bg-white/5 rounded-[30px] border border-white/10 backdrop-blur-md p-6 mb-8 flex flex-col justify-between shadow-2xl backdrop-saturate-150 relative overflow-hidden group cursor-pointer active:scale-95 transition-transform"
+          >
             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="flex justify-between items-start z-10">
               <div className="flex flex-col">
-                <h3 className="text-lg font-semibold tracking-tight">Strasbourg</h3>
+                <h3 className="text-lg font-semibold tracking-tight">{weather.location}</h3>
                 <div className="flex items-center gap-1 text-xs opacity-60 font-medium uppercase tracking-wider">
                   <Globe size={10} />
-                  <span>Partly Cloudy</span>
+                  <span>{weather.condition}</span>
                 </div>
               </div>
-              <span className="text-5xl font-extralight tracking-tighter">12°</span>
+              <span className="text-5xl font-extralight tracking-tighter">{weather.temp}°</span>
             </div>
             <div className="text-xs opacity-50 flex justify-between font-mono font-medium z-10">
-              <span>FRI 16</span>
-              <span>H:14 L:8</span>
+              <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }).toUpperCase()}</span>
+              <span>Updated Just Now</span>
             </div>
           </div>
 
@@ -119,7 +188,7 @@ function App() {
             <AppIcon label="Settings" icon={Settings} onClick={() => setOpenApp('settings')} />
             <AppIcon label="Music" icon={Music} onClick={() => setOpenApp('music')} />
             <AppIcon label="Calc" icon={Calculator} onClick={() => setOpenApp('calc')} />
-            <AppIcon label="Camera" icon={Camera} onClick={() => setOpenApp('gallery')} />
+            <AppIcon label="Camera" icon={Camera} onClick={() => setOpenApp('camera')} />
           </div>
 
           {/* Quick Search Pill */}
@@ -163,28 +232,43 @@ function App() {
         <CalculatorApp />
       </Window>
 
-      <Window isOpen={openApp === 'gallery'} onClose={() => setOpenApp(null)} title="Camera">
-        <CameraApp />
-      </Window>
-
-      <Window isOpen={openApp === 'youtube'} onClose={() => setOpenApp(null)} title="YouTube">
-        <IframeApp url="https://www.youtube.com/embed/jfKfPfyJRdk" title="YouTube" />
-      </Window>
-
-      <Window isOpen={openApp === 'twitch'} onClose={() => setOpenApp(null)} title="Twitch">
-        {/* Twitch requires parent domain for embeds, might fail on localhost without config, using generic player for demo */}
-        <div className="flex items-center justify-center h-full bg-[#6441a5] text-white">
-          <span className="text-xl font-bold">Twitch Player Placeholder</span>
-        </div>
+      <Window isOpen={openApp === 'gallery'} onClose={() => setOpenApp(null)} title="Gallery">
+        <GalleryApp />
       </Window>
 
       <Window isOpen={openApp === 'sysmon'} onClose={() => setOpenApp(null)} title="System Monitor">
-        <SystemMonitorApp />
+        <SystemMonitorApp stats={sysStats} serverStatus={serverStatus} />
       </Window>
 
-      <Window isOpen={openApp === 'music'} onClose={() => setOpenApp(null)} title="Music">
+      <Window isOpen={openApp === 'music'} onClose={() => setOpenApp(null)} title="Music Player">
         <MusicApp />
       </Window>
+
+      <Window isOpen={openApp === 'youtube'} onClose={() => setOpenApp(null)} title="Youtube">
+        <IframeApp url="https://www.youtube.com/embed/jfKfPfyJRdk" title="Youtube" />
+      </Window>
+
+      <Window isOpen={openApp === 'twitch'} onClose={() => setOpenApp(null)} title="Twitch">
+        <IframeApp url="https://player.twitch.tv/?channel=lofi_girl&parent=localhost" title="Twitch" />
+      </Window>
+
+      <Window isOpen={openApp === 'weather'} onClose={() => setOpenApp(null)} title="Weather">
+        <WeatherApp coords={coords} locationName={weather.location} />
+      </Window>
+
+      {/* Camera App (Custom Fullscreen Mode) */}
+      <AnimatePresence>
+        {openApp === 'camera' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 z-40 bg-black"
+          >
+            <CameraApp onClose={() => setOpenApp(null)} onOpenGallery={() => setOpenApp('gallery')} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   )
