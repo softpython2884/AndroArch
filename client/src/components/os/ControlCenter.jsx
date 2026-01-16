@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Wifi, Bluetooth, Sun, Moon, Volume2, Plane, Share2 } from 'lucide-react';
 import { GlassPane } from '../ui/GlassPane';
-import { useSettings } from '../context/SettingsContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const ControlTile = ({ icon: Icon, label, active, onClick }) => (
     <button
