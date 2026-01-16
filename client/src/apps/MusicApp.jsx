@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Music, ListMusic, Volume2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Music, ListMusic, Volume2, Search } from 'lucide-react';
 import { useMusic } from '../context/MusicContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,15 +17,42 @@ const MusicApp = () => {
     } = useMusic();
 
     const [showPlaylist, setShowPlaylist] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [query, setQuery] = useState("");
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [addTrack] = useMusic().addTrack ? [useMusic().addTrack] : [() => { }]; // Safe access
 
-    const formatTime = (time) => {
-        if (!time || isNaN(time)) return "0:00";
-        const min = Math.floor(time / 60);
-        const sec = Math.floor(time % 60);
-        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        if (!query.trim()) return;
+        setLoading(true);
+        try {
+            const res = await fetch(`http://localhost:3000/api/youtube/search?q=${encodeURIComponent(query + " audio")}`);
+            const data = await res.json();
+            setResults(data.results || []);
+        } catch (err) {
+            console.error(err);
+        }
+        setLoading(false);
     };
 
-    const currentTrackIndex = tracks.findIndex(t => t.id === currentTrack.id);
+    const handleAddTrack = (video) => {
+        const newTrack = {
+            id: Date.now(),
+            title: video.title,
+            artist: video.author?.name || video.author || "Unknown Artist",
+            url: `http://localhost:3000/api/youtube/stream?id=${video.id}`,
+            cover: video.thumbnail?.url || video.thumbnail
+        };
+        addTrack(newTrack);
+        playTrack(tracks.length, newTrack); // Play the newly added track immediately
+        setShowSearch(false);
+        setQuery("");
+        setResults([]);
+    };
+
+    // ... formatTime helper ...
 
     return (
         <div className="h-full flex flex-col bg-[#050505] text-white overflow-hidden font-sans relative">
@@ -52,19 +79,72 @@ const MusicApp = () => {
                         <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest leading-none mt-0.5">Hi-Res Engine</p>
                     </div>
                 </div>
-                <button
-                    onClick={() => setShowPlaylist(!showPlaylist)}
-                    className={`p-2.5 rounded-xl transition-all ${showPlaylist ? 'bg-blue-600 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-400'}`}
-                >
-                    <ListMusic size={18} />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => { setShowSearch(!showSearch); setShowPlaylist(false); }}
+                        className={`p-2.5 rounded-xl transition-all ${showSearch ? 'bg-blue-600 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-400'}`}
+                    >
+                        <Search size={18} />
+                    </button>
+                    <button
+                        onClick={() => { setShowPlaylist(!showPlaylist); setShowSearch(false); }}
+                        className={`p-2.5 rounded-xl transition-all ${showPlaylist ? 'bg-blue-600 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-400'}`}
+                    >
+                        <ListMusic size={18} />
+                    </button>
+                </div>
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10 overflow-hidden">
                 <AnimatePresence mode="wait">
-                    {!showPlaylist ? (
+                    {showSearch ? (
                         <motion.div
-                            key="player"
+                            key="search"
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -20, opacity: 0 }}
+                            className="w-full h-full flex flex-col pt-4"
+                        >
+                            <form onSubmit={handleSearch} className="mb-4">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        placeholder="Search for tracks..."
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-blue-500/50 focus:bg-white/10 transition-all placeholder:text-white/20"
+                                        autoFocus
+                                    />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
+                                </div>
+                            </form>
+
+                            <div className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-none">
+                                {loading && <div className="text-center text-xs text-blue-400 animate-pulse py-4">Searching Hi-Res Network...</div>}
+                                {!loading && results.map((res, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleAddTrack(res)}
+                                        className="w-full flex items-center gap-3 p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all group text-left"
+                                    >
+                                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-black relative">
+                                            <img src={res.thumbnail?.url || res.thumbnail} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Play size={16} fill="white" />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-xs truncate text-white/90 group-hover:text-blue-400 transition-colors">{res.title}</h4>
+                                            <p className="text-[9px] uppercase tracking-widest font-medium text-white/30 truncate">{res.author?.name || res.author}</p>
+                                        </div>
+                                        <div className="text-[9px] font-mono text-white/20">{res.duration}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    ) : !showPlaylist ? (
+                        <motion.div
+                            key="player" // ... existing player code ...
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}

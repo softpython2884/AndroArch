@@ -2,52 +2,52 @@ import React, { createContext, useContext, useState, useRef, useEffect } from 'r
 
 const MusicContext = createContext();
 
-export const tracks = [
-    {
-        id: 1,
-        title: "Neon Nights",
-        artist: "Synthwave Boy",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-        cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=500&q=80"
-    },
-    {
-        id: 2,
-        title: "Cyber Drift",
-        artist: "Data Ghost",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-        cover: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=500&q=80"
-    },
-    {
-        id: 3,
-        title: "Orbit Pulse",
-        artist: "Lunar Echo",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-        cover: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=500&q=80"
-    },
-    {
-        id: 4,
-        title: "Digital Horizon",
-        artist: "Silicon Soul",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-        cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80"
-    },
-    {
-        id: 5,
-        title: "Void Runner",
-        artist: "Phantom Link",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-        cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=500&q=80"
-    },
-    {
-        id: 6,
-        title: "Glitch Echo",
-        artist: "Byte Bandit",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-        cover: "https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&w=500&q=80"
-    }
-];
-
 export const MusicProvider = ({ children }) => {
+    const [tracks, setTracks] = useState([
+        {
+            id: 1,
+            title: "Neon Nights",
+            artist: "Synthwave Boy",
+            url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+            cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=500&q=80"
+        },
+        {
+            id: 2,
+            title: "Cyber Drift",
+            artist: "Data Ghost",
+            url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+            cover: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=500&q=80"
+        },
+        {
+            id: 3,
+            title: "Orbit Pulse",
+            artist: "Lunar Echo",
+            url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+            cover: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=500&q=80"
+        },
+        {
+            id: 4,
+            title: "Digital Horizon",
+            artist: "Silicon Soul",
+            url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+            cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=500&q=80"
+        },
+        {
+            id: 5,
+            title: "Void Runner",
+            artist: "Phantom Link",
+            url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+            cover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=500&q=80"
+        },
+        {
+            id: 6,
+            title: "Glitch Echo",
+            artist: "Byte Bandit",
+            url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+            cover: "https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&w=500&q=80"
+        }
+    ]);
+
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -83,15 +83,22 @@ export const MusicProvider = ({ children }) => {
         }
     }, [isPlaying, currentTrackIndex]);
 
-    const playTrack = (index) => {
-        if (index === currentTrackIndex) {
+    const playTrack = (index, trackOverride = null) => {
+        const track = trackOverride || tracks[index];
+        if (!track) return;
+
+        if (index === currentTrackIndex && !trackOverride) {
             setIsPlaying(!isPlaying);
         } else {
             audioRef.current.pause();
-            audioRef.current.src = tracks[index].url;
+            audioRef.current.src = track.url;
             setCurrentTrackIndex(index);
             setIsPlaying(true);
         }
+    };
+
+    const addTrack = (newTrack) => {
+        setTracks(prev => [...prev, newTrack]);
     };
 
     const skipForward = () => {
@@ -118,6 +125,7 @@ export const MusicProvider = ({ children }) => {
             setIsPlaying,
             progress,
             playTrack,
+            addTrack,
             skipForward,
             skipBackward,
             seek,
