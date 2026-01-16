@@ -1,23 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+
+  html,
   body {
-    @apply bg-sub-black text-white font-mono overflow-hidden;
+    @apply h-full w-full bg-black text-white font-sans overflow-hidden m-0 p-0;
+  }
+
+  #root {
+    @apply h-full w-full;
   }
 }
 
-/* Custom scrollbar for cyberpunk feel */
-::-webkit-scrollbar {
-  width: 5px;
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: #000; 
-}
-::-webkit-scrollbar-thumb {
-  background: #333; 
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #00ff41; 
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
