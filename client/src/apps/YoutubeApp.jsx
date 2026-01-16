@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Play, Pause, Volume2, Maximize, ArrowLeft, Youtube, Loader2 } from "lucide-react";
+import { Search, Play, Pause, Volume2, Maximize, ArrowLeft, Youtube, Loader2, AlertCircle } from "lucide-react";
 
 const YoutubeApp = () => {
     const [query, setQuery] = useState("");
@@ -7,6 +7,7 @@ const YoutubeApp = () => {
     const [loading, setLoading] = useState(false);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [videoError, setVideoError] = useState(null);
     const videoRef = useRef(null);
 
     const handleSearch = async (e) => {
@@ -100,11 +101,31 @@ const YoutubeApp = () => {
                             <video
                                 ref={videoRef}
                                 src={`http://localhost:3000/api/youtube/stream?id=${currentVideo.id}`}
-                                className="max-w-full max-h-full aspect-video shadow-2xl"
+                                className="max-w-full max-h-full aspect-video shadow-2xl z-10"
                                 autoPlay
                                 onPlay={() => setIsPlaying(true)}
                                 onPause={() => setIsPlaying(false)}
+                                onError={(e) => {
+                                    console.error("Video error:", e);
+                                    setVideoError("Format non supporté ou erreur de flux. Réessaie...");
+                                }}
                             />
+
+                            {videoError && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/90 z-20 p-6 text-center">
+                                    <AlertCircle className="text-red-500 mb-4" size={48} />
+                                    <p className="text-sm font-medium mb-4">{videoError}</p>
+                                    <button
+                                        onClick={() => {
+                                            setVideoError(null);
+                                            videoRef.current.load();
+                                        }}
+                                        className="px-6 py-2 bg-red-600 rounded-full font-bold text-xs"
+                                    >
+                                        Réessayer
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Custom Controls Overlay (Fade out) */}
                             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">

@@ -116,17 +116,32 @@ app.get('/api/youtube/stream', async (req, res) => {
 
   try {
     const info = await ytdl.getInfo(videoId);
-    const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo', filter: 'audioandvideo' });
-    
+
+    // Attempt to find a combined format (video + audio)
+    // We prioritize MP4 and a reasonable quality (720p or 360p) for better browser compatibility
+    let format = ytdl.chooseFormat(info.formats, {
+      filter: 'audioandvideo',
+      quality: 'highest',
+      container: 'mp4'
+    });
+
+    // Fallback if no MP4 combined format
     if (!format) {
-      return res.status(404).json({ error: "Compatible format not found" });
+      format = ytdl.chooseFormat(info.formats, { filter: 'audioandvideo' });
     }
 
-    console.log(`[YouTube] Proxying stream for: ${videoId}`);
+    if (!format) {
+      console.warn(`[YouTube] No combined format found for ${videoId}.`);
+      return res.status(404).json({ error: "No playable format found" });
+    }
+
+    console.log(`[YouTube] Proxying stream (${format.qualityLabel || 'unknown quality'}) for: ${videoId}`);
 
     // Set headers for video streaming
     res.setHeader('Content-Type', 'video/mp4');
-    
+    // Enable ranges for better seeking in browser
+    res.setHeader('Accept-Ranges', 'bytes');
+
     // Use ytdl to stream directly to response
     ytdl(videoId, {
       format: format,
@@ -135,7 +150,7 @@ app.get('/api/youtube/stream', async (req, res) => {
   } catch (error) {
     console.error('[YouTube] Stream error:', error.message);
     if (!res.headersSent) {
-      res.status(500).json({ error: "Streaming failed" });
+      res.status(500).json({ error: "Streaming failed: " + error.message });
     }
   }
 });
