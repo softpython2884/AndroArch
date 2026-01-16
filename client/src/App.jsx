@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client';
-import { Terminal, Globe, Activity, Settings, Phone, MessageCircle, Camera, Music, Calendar, Twitch, Youtube, Calculator, HelpCircle } from 'lucide-react';
+import { Terminal, Globe, Activity, Settings, Phone, MessageCircle, Camera, Music, Calendar, Twitch, Youtube, Calculator, HelpCircle, AlertCircle, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // OS Components
@@ -52,6 +52,9 @@ function App() {
   const [weather, setWeather] = useState({ temp: '--', condition: 'Scanning...', location: 'Locating...' });
   const [coords, setCoords] = useState(null);
 
+  // Broadcast State
+  const [broadcast, setBroadcast] = useState(null);
+
   // Connect to Backend & Fetch Weather
   useEffect(() => {
     // Socket
@@ -60,14 +63,25 @@ function App() {
     socket.on('disconnect', () => { setServerStatus('OFFLINE'); });
     socket.on('system_status', (stats) => setSysStats(stats));
 
+    // Admin Broadcasts
+    socket.on('broadcast_notification', (data) => {
+      setBroadcast(data);
+      // Auto-hide after 10 seconds
+      setTimeout(() => setBroadcast(null), 10000);
+    });
+
     const fetchWeatherData = async (lat, lon) => {
       // 1. Fetch Location
       try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`, {
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=11`, {
           headers: { 'User-Agent': 'AndroArch-OS/1.0' }
         });
         const geoData = await geoRes.json();
-        const city = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.municipality || "Unknown Sector";
+
+        // Extended city detection
+        const addr = geoData.address;
+        const city = addr?.city || addr?.town || addr?.village || addr?.municipality || addr?.suburb || addr?.county || "Unknown Sector";
+
         setWeather(prev => ({ ...prev, location: city }));
       } catch (e) {
         console.warn("Location fetch failed", e);
@@ -103,19 +117,19 @@ function App() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setCoords({ latitude, longitude });
+          setCoords({ lat: latitude, lon: longitude }); // Use lat/lon
           fetchWeatherData(latitude, longitude);
         },
         (error) => {
           console.error("Geo Access Denied:", error);
           // Fallback (Strasbourg)
-          setCoords({ latitude: 48.5839, longitude: 7.7455 });
+          setCoords({ lat: 48.5839, lon: 7.7455 });
           fetchWeatherData(48.5839, 7.7455);
         }
       );
     } else {
       // Fallback
-      setCoords({ latitude: 48.5839, longitude: 7.7455 });
+      setCoords({ lat: 48.5839, lon: 7.7455 });
       fetchWeatherData(48.5839, 7.7455);
     }
 
@@ -214,6 +228,39 @@ function App() {
       </motion.div>
 
       {/* 4. Overlays */}
+      {/* Admin Broadcast Notification */}
+      <AnimatePresence>
+        {broadcast && (
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-lg"
+          >
+            <div className="bg-red-900/60 backdrop-blur-2xl border border-red-500/30 rounded-3xl p-6 shadow-2xl shadow-red-950/40 flex items-start gap-4 ring-1 ring-white/10">
+              <div className="w-10 h-10 rounded-2xl bg-red-600 flex items-center justify-center shrink-0 shadow-lg shadow-red-900/40">
+                <AlertCircle className="text-white" size={24} />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-100 opacity-80">System Broadcast</h4>
+                  <span className="text-[9px] font-mono opacity-40">Just Now</span>
+                </div>
+                <p className="text-sm font-bold text-white leading-relaxed">
+                  {broadcast.message}
+                </p>
+              </div>
+              <button
+                onClick={() => setBroadcast(null)}
+                className="text-white/40 hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <ControlCenter isOpen={isControlCenterOpen} onClose={() => setIsControlCenterOpen(false)} />
 
       {/* 5. Apps */}

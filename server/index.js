@@ -198,6 +198,15 @@ io.on('connection', (socket) => {
       socket.emit('command_output', stdout);
     });
   });
+
+  // Admin Broadcast Logic
+  socket.on('admin_broadcast', (msg) => {
+    console.log(`[Admin] Broadcasting: ${msg}`);
+    io.emit('broadcast_notification', {
+      message: msg,
+      timestamp: new Date().toISOString()
+    });
+  });
 });
 
 const si = require('systeminformation');
