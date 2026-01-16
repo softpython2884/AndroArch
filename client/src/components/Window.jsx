@@ -1,37 +1,37 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft } from 'lucide-react';
 
 const Window = ({ isOpen, onClose, title, children }) => {
     return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 50 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 50 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    // Mobile: Fixed inset-0 (full screen). Desktop (md): inset-4 or centered modal style could be used, 
-                    // but here we keep full screen-ish for that "Immersive App" feel, just with some margin on desktop if desired.
-                    // For strictly mobile "Sub-OS", full screen overlays feel most native.
-                    className="absolute inset-0 z-50 flex flex-col bg-sub-black text-white overflow-hidden"
+                    initial={{ y: '100%', opacity: 0, scale: 0.95 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    exit={{ y: '20%', opacity: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 250, damping: 25 }}
+                    className="absolute inset-0 z-40 bg-black flex flex-col overflow-hidden"
                 >
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-3 border-b border-neon-green/20 bg-sub-gray/90 backdrop-blur-md">
-                        <span className="font-mono text-neon-green font-bold text-lg tracking-widest pl-2">
-                            {title}
-                        </span>
+                    {/* Mobile App Header */}
+                    <div className="h-16 bg-black/80 backdrop-blur-md flex items-end justify-between px-4 pb-3 border-b border-white/5 z-50">
                         <button
                             onClick={onClose}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors border border-red-500/30"
+                            className="p-2 -ml-2 rounded-full active:bg-white/10 transition-colors"
                         >
-                            ✕
+                            <ChevronLeft className="text-white" />
                         </button>
+                        <span className="font-semibold text-sm tracking-wide">{title}</span>
+                        <div className="w-8"></div> {/* Spacer for center alignment */}
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 overflow-auto p-4 relative bg-sub-black/50">
-                        {/* Scanlines effect overlay */}
-                        <div className="pointer-events-none absolute inset-0 bg-scanlines opacity-[0.03]"></div>
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-auto bg-sub-black relative">
                         {children}
+                    </div>
+
+                    {/* Home Indicator / Gesture Bar */}
+                    <div className="absolute bottom-0 left-0 right-0 h-6 bg-transparent flex justify-center items-end pb-2 pointer-events-none z-50">
+                        <div className="w-32 h-1 bg-white/40 rounded-full" />
                     </div>
                 </motion.div>
             )}

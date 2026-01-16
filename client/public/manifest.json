@@ -1,0 +1,18 @@
+{
+    "name": "AndroArch Sub-OS",
+    "short_name": "AndroArch",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "description": "A Cyberpunk/Arch Linux styled Sub-OS interface.",
+    "icons": [
+        {
+            "src": "/vite.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "orientation": "portrait"
+}
