@@ -4,11 +4,14 @@ import './index.css'
 import App from './App.jsx'
 
 import { SettingsProvider } from './context/SettingsContext.jsx'
+import { MusicProvider } from './context/MusicContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SettingsProvider>
-      <App />
+      <MusicProvider>
+        <App />
+      </MusicProvider>
     </SettingsProvider>
   </StrictMode>,
 )

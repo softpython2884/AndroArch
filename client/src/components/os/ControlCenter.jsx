@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Wifi, Bluetooth, Sun, Moon, Volume2, Plane, Share2 } from 'lucide-react';
+import { Wifi, Bluetooth, Sun, Moon, Volume2, Plane, Share2, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 import { GlassPane } from '../ui/GlassPane';
 import { useSettings } from '../../context/SettingsContext';
+import { useMusic } from '../../context/MusicContext';
 
 const ControlTile = ({ icon: Icon, label, active, onClick }) => (
     <button
@@ -15,6 +16,7 @@ const ControlTile = ({ icon: Icon, label, active, onClick }) => (
 
 const ControlCenter = ({ isOpen, onClose }) => {
     const { settings, toggleSetting, updateSetting } = useSettings();
+    const { currentTrack, isPlaying, setIsPlaying, skipForward, skipBackward } = useMusic();
 
     return (
         <motion.div
@@ -24,8 +26,13 @@ const ControlCenter = ({ isOpen, onClose }) => {
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-3xl pt-12 px-6 pb-6 flex flex-col gap-6"
         >
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">Control Center</h2>
-                <button onClick={onClose} className="text-sm bg-white/10 px-4 py-2 rounded-full">Done</button>
+                <h2 className="text-2xl font-bold tracking-tight">Control Center</h2>
+                <button
+                    onClick={onClose}
+                    className="text-xs font-bold uppercase tracking-widest bg-white/10 px-6 py-2.5 rounded-full hover:bg-white/20 transition-all border border-white/10"
+                >
+                    Close
+                </button>
             </div>
 
             {/* Connectivity Grid */}
@@ -56,8 +63,8 @@ const ControlCenter = ({ isOpen, onClose }) => {
                             <Moon size={20} />
                         </button>
                         <div className="flex flex-col">
-                            <span className="font-semibold text-sm">Dark Mode</span>
-                            <span className="text-xs opacity-50">{settings.theme === 'dark' ? 'On' : 'Off'}</span>
+                            <span className="font-semibold text-sm">Theme</span>
+                            <span className="text-xs opacity-50 uppercase tracking-widest font-bold">{settings.theme}</span>
                         </div>
                     </div>
                 </GlassPane>
@@ -101,19 +108,28 @@ const ControlCenter = ({ isOpen, onClose }) => {
                 </div>
             </GlassPane>
 
-            {/* Music Player Mockup */}
-            <GlassPane className="p-4 rounded-3xl flex items-center gap-4 mt-auto" blur="xl">
-                <div className="w-12 h-12 bg-neutral-800 rounded-xl overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=100&q=80" className="w-full h-full object-cover" />
+            {/* Music Player */}
+            <GlassPane className="p-4 rounded-3xl flex items-center gap-4 mt-auto border border-white/5" blur="xl">
+                <div className="w-12 h-12 bg-neutral-800 rounded-xl overflow-hidden shadow-lg">
+                    <img src={currentTrack.cover} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex-1">
-                    <h4 className="text-sm font-bold">Neon Nights</h4>
-                    <p className="text-xs opacity-60">Synthwave Boy</p>
+                <div className="flex-1 overflow-hidden">
+                    <h4 className="text-sm font-bold truncate">{currentTrack.title}</h4>
+                    <p className="text-[10px] opacity-40 uppercase tracking-widest font-medium truncate">{currentTrack.artist}</p>
                 </div>
-                <div className="flex gap-4 text-xl">
-                    <span>⏮</span>
-                    <span>⏯</span>
-                    <span>⏭</span>
+                <div className="flex items-center gap-5 pr-2">
+                    <button onClick={skipBackward} className="text-white/40 hover:text-white transition-colors">
+                        <SkipBack size={18} fill="currentColor" />
+                    </button>
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition-all shadow-lg"
+                    >
+                        {isPlaying ? <Pause size={18} fill="black" /> : <Play size={18} fill="black" className="ml-0.5" />}
+                    </button>
+                    <button onClick={skipForward} className="text-white/40 hover:text-white transition-colors">
+                        <SkipForward size={18} fill="currentColor" />
+                    </button>
                 </div>
             </GlassPane>
 

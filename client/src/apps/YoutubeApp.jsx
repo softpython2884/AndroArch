@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, Play, Pause, Volume2, Maximize, ArrowLeft, Youtube, Loader2, AlertCircle } from "lucide-react";
 
-const YoutubeApp = () => {
+const YoutubeApp = ({ initialArgs }) => {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -9,6 +9,15 @@ const YoutubeApp = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [videoError, setVideoError] = useState(null);
     const videoRef = useRef(null);
+    const initializedRef = useRef(false);
+
+    useEffect(() => {
+        if (initialArgs && !initializedRef.current) {
+            setCurrentVideo(initialArgs);
+            setIsPlaying(true);
+            initializedRef.current = true;
+        }
+    }, [initialArgs]);
 
     const handleSearch = async (e) => {
         if (e) e.preventDefault();

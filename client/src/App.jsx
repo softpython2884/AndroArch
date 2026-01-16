@@ -47,6 +47,18 @@ function App() {
   const [isLocked, setIsLocked] = useState(true);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [openApp, setOpenApp] = useState(null);
+  const [appArgs, setAppArgs] = useState(null);
+
+  // Helper to launch apps with data
+  const launchApp = (appName, args = null) => {
+    setAppArgs(args);
+    setOpenApp(appName);
+  };
+
+  const closeApp = () => {
+    setOpenApp(null);
+    setAppArgs(null);
+  };
 
   // Weather State
   const [weather, setWeather] = useState({ temp: '--', condition: 'Scanning...', location: 'Locating...' });
@@ -193,20 +205,20 @@ function App() {
 
           {/* App Grid - Centered Lower */}
           <div className="grid grid-cols-4 gap-x-5 gap-y-8 place-items-center mb-8">
-            <AppIcon label="Web" icon={Globe} onClick={() => setOpenApp('goolag')} />
-            <AppIcon label="Term" icon={Terminal} onClick={() => setOpenApp('terminal')} />
-            <AppIcon label="TubeArch" icon={Youtube} onClick={() => setOpenApp('youtube')} />
-            <AppIcon label="Stream" icon={Twitch} onClick={() => setOpenApp('twitch')} />
+            <AppIcon label="Web" icon={Globe} onClick={() => launchApp('goolag')} />
+            <AppIcon label="Term" icon={Terminal} onClick={() => launchApp('terminal')} />
+            <AppIcon label="TubeArch" icon={Youtube} onClick={() => launchApp('youtube')} />
+            <AppIcon label="Stream" icon={Twitch} onClick={() => launchApp('twitch')} />
 
-            <AppIcon label="Settings" icon={Settings} onClick={() => setOpenApp('settings')} />
-            <AppIcon label="Music" icon={Music} onClick={() => setOpenApp('music')} />
-            <AppIcon label="Calc" icon={Calculator} onClick={() => setOpenApp('calc')} />
-            <AppIcon label="Camera" icon={Camera} onClick={() => setOpenApp('camera')} />
+            <AppIcon label="Settings" icon={Settings} onClick={() => launchApp('settings')} />
+            <AppIcon label="Music" icon={Music} onClick={() => launchApp('music')} />
+            <AppIcon label="Calc" icon={Calculator} onClick={() => launchApp('calc')} />
+            <AppIcon label="Camera" icon={Camera} onClick={() => launchApp('camera')} />
           </div>
 
           {/* Quick Search Pill */}
           <div
-            onClick={() => setOpenApp('goolag')}
+            onClick={() => launchApp('goolag')}
             className="w-full h-12 bg-white/10 backdrop-blur-xl rounded-full mb-4 flex items-center px-4 gap-3 text-white/50 border border-white/5 active:scale-95 transition-transform"
           >
             <Globe size={18} />
@@ -262,43 +274,43 @@ function App() {
       <ControlCenter isOpen={isControlCenterOpen} onClose={() => setIsControlCenterOpen(false)} />
 
       {/* 5. Apps */}
-      <Window isOpen={openApp === 'goolag'} onClose={() => setOpenApp(null)} title="Arc Web">
-        <GoolagApp />
+      <Window isOpen={openApp === 'goolag'} onClose={closeApp} title="Arc Web">
+        <GoolagApp launchApp={launchApp} />
       </Window>
 
-      <Window isOpen={openApp === 'terminal'} onClose={() => setOpenApp(null)} title="Terminal">
+      <Window isOpen={openApp === 'terminal'} onClose={closeApp} title="Terminal">
         <TerminalApp />
       </Window>
 
-      <Window isOpen={openApp === 'settings'} onClose={() => setOpenApp(null)} title="Settings">
+      <Window isOpen={openApp === 'settings'} onClose={closeApp} title="Settings">
         <SettingsApp />
       </Window>
 
-      <Window isOpen={openApp === 'calc'} onClose={() => setOpenApp(null)} title="Calculator">
+      <Window isOpen={openApp === 'calc'} onClose={closeApp} title="Calculator">
         <CalculatorApp />
       </Window>
 
-      <Window isOpen={openApp === 'gallery'} onClose={() => setOpenApp(null)} title="Gallery">
+      <Window isOpen={openApp === 'gallery'} onClose={closeApp} title="Gallery">
         <GalleryApp />
       </Window>
 
-      <Window isOpen={openApp === 'sysmon'} onClose={() => setOpenApp(null)} title="System Monitor">
+      <Window isOpen={openApp === 'sysmon'} onClose={closeApp} title="System Monitor">
         <SystemMonitorApp stats={sysStats} serverStatus={serverStatus} />
       </Window>
 
-      <Window isOpen={openApp === 'music'} onClose={() => setOpenApp(null)} title="Music Player">
+      <Window isOpen={openApp === 'music'} onClose={closeApp} title="Music Player">
         <MusicApp />
       </Window>
 
-      <Window isOpen={openApp === 'youtube'} onClose={() => setOpenApp(null)} title="TubeArch (Proxy)">
-        <YoutubeApp />
+      <Window isOpen={openApp === 'youtube'} onClose={closeApp} title="TubeArch (Proxy)">
+        <YoutubeApp initialArgs={appArgs} />
       </Window>
 
-      <Window isOpen={openApp === 'twitch'} onClose={() => setOpenApp(null)} title="Twitch">
+      <Window isOpen={openApp === 'twitch'} onClose={closeApp} title="Twitch">
         <IframeApp url="https://player.twitch.tv/?channel=lofi_girl&parent=localhost" title="Twitch" />
       </Window>
 
-      <Window isOpen={openApp === 'weather'} onClose={() => setOpenApp(null)} title="Weather">
+      <Window isOpen={openApp === 'weather'} onClose={closeApp} title="Weather">
         <WeatherApp coords={coords} locationName={weather.location} />
       </Window>
 
