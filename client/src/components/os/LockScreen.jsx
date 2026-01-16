@@ -1,15 +1,26 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Unlock, Delete, ChevronUp } from 'lucide-react';
+import { Lock, Unlock, Delete, ChevronUp, BellRing, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { GlassPane } from '../ui/GlassPane';
+import { useNotifications } from '../../context/NotificationContext';
 
 const LockScreen = ({ isLocked, onUnlock }) => {
+    const { notifications } = useNotifications();
     const [pin, setPin] = useState("");
     const [error, setError] = useState(false);
-    const [showPin, setShowPin] = useState(false); // Controls PIN screen visibility
+    const [showPin, setShowPin] = useState(false);
     const [time, setTime] = useState(new Date());
 
     const CORRECT_PIN = "1234";
+
+    const getIcon = (type) => {
+        switch (type) {
+            case 'broadcast': return <BellRing className="text-white" size={20} />;
+            case 'error': return <AlertCircle className="text-red-400" size={20} />;
+            case 'success': return <CheckCircle className="text-green-400" size={20} />;
+            default: return <Info className="text-blue-400" size={20} />;
+        }
+    };
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -72,28 +83,35 @@ const LockScreen = ({ isLocked, onUnlock }) => {
                         </div>
 
                         {/* Notifications */}
-                        <div className="w-full px-6 flex-1 flex flex-col gap-3 items-center max-w-sm">
-                            <GlassPane blur="md" className="w-full p-4 rounded-2xl flex gap-3 items-center cursor-pointer active:scale-[0.98]">
-                                <div className="w-10 h-10 rounded-full bg-[#5865F2] flex items-center justify-center shrink-0">
-                                    <span className="text-xl">💬</span>
+                        <div className="w-full px-6 flex-1 flex flex-col gap-3 items-center max-w-sm overflow-hidden">
+                            {notifications.length === 0 ? (
+                                <div className="opacity-20 flex flex-col items-center">
+                                    <Lock size={32} className="mb-2" />
+                                    <span className="text-[10px] uppercase tracking-widest font-black">Secure Link Established</span>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-bold">Discord</h4>
-                                    <p className="text-xs opacity-90 truncate">New message from @Neo: "Wake up..."</p>
-                                </div>
-                                <span className="text-[10px] opacity-60">2m</span>
-                            </GlassPane>
-
-                            <GlassPane blur="md" className="w-full p-4 rounded-2xl flex gap-3 items-center cursor-pointer active:scale-[0.98]">
-                                <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center shrink-0">
-                                    <span className="text-xl">📧</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-bold">Gmail</h4>
-                                    <p className="text-xs opacity-90 truncate">Job Offer: Cyberdyne Systems</p>
-                                </div>
-                                <span className="text-[10px] opacity-60">12m</span>
-                            </GlassPane>
+                            ) : (
+                                notifications.slice(0, 3).map(notif => (
+                                    <GlassPane
+                                        key={notif.id}
+                                        blur="md"
+                                        className="w-full p-4 rounded-[2rem] flex gap-4 items-center cursor-pointer active:scale-[0.98] border border-white/5"
+                                    >
+                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${notif.type === 'broadcast' ? 'bg-red-600' : 'bg-white/5'}`}>
+                                            {getIcon(notif.type)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-sm font-bold truncate">{notif.title}</h4>
+                                            <p className="text-xs opacity-60 truncate">{notif.message}</p>
+                                        </div>
+                                        <span className="text-[10px] opacity-40 font-mono">{notif.timestamp}</span>
+                                    </GlassPane>
+                                ))
+                            )}
+                            {notifications.length > 3 && (
+                                <span className="text-[9px] font-black uppercase tracking-widest opacity-30 mt-2">
+                                    + {notifications.length - 3} more encrypted alerts
+                                </span>
+                            )}
                         </div>
 
                         {/* Swipe Up Indicator */}
@@ -135,8 +153,8 @@ const LockScreen = ({ isLocked, onUnlock }) => {
                                     <div
                                         key={i}
                                         className={`w-4 h-4 rounded-full border border-white/30 transition-all duration-200 ${i < pin.length
-                                                ? (error ? "bg-red-500 border-red-500" : "bg-white border-white")
-                                                : "bg-transparent"
+                                            ? (error ? "bg-red-500 border-red-500" : "bg-white border-white")
+                                            : "bg-transparent"
                                             }`}
                                     />
                                 ))}

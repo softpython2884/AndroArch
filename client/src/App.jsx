@@ -249,7 +249,11 @@ function App() {
 
       {/* 4. Overlays */}
       <NotificationTray />
-      <ControlCenter isOpen={isControlCenterOpen} onClose={() => setIsControlCenterOpen(false)} />
+      <ControlCenter
+        isOpen={isControlCenterOpen}
+        onClose={() => setIsControlCenterOpen(false)}
+        onLock={() => { setIsLocked(true); setIsControlCenterOpen(false); }}
+      />
 
       {/* 5. Apps */}
       <Window isOpen={openApp === 'goolag'} onClose={closeApp} title="Arc Web">
