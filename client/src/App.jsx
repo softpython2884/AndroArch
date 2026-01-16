@@ -21,6 +21,7 @@ import MusicApp from './apps/MusicApp';
 import SystemMonitorApp from './apps/SystemMonitorApp';
 import CameraApp from './apps/CameraApp';
 import WeatherApp from './apps/WeatherApp';
+import YoutubeApp from './apps/YoutubeApp';
 
 import wallpaper from './assets/wallpaper.png';
 
@@ -182,7 +183,7 @@ function App() {
           <div className="grid grid-cols-4 gap-x-5 gap-y-8 place-items-center mb-8">
             <AppIcon label="Web" icon={Globe} onClick={() => setOpenApp('goolag')} />
             <AppIcon label="Term" icon={Terminal} onClick={() => setOpenApp('terminal')} />
-            <AppIcon label="YouLink" icon={Youtube} onClick={() => setOpenApp('youtube')} />
+            <AppIcon label="TubeArch" icon={Youtube} onClick={() => setOpenApp('youtube')} />
             <AppIcon label="Stream" icon={Twitch} onClick={() => setOpenApp('twitch')} />
 
             <AppIcon label="Settings" icon={Settings} onClick={() => setOpenApp('settings')} />
@@ -244,8 +245,8 @@ function App() {
         <MusicApp />
       </Window>
 
-      <Window isOpen={openApp === 'youtube'} onClose={() => setOpenApp(null)} title="Youtube">
-        <IframeApp url="https://www.youtube.com/embed/jfKfPfyJRdk" title="Youtube" />
+      <Window isOpen={openApp === 'youtube'} onClose={() => setOpenApp(null)} title="TubeArch (Proxy)">
+        <YoutubeApp />
       </Window>
 
       <Window isOpen={openApp === 'twitch'} onClose={() => setOpenApp(null)} title="Twitch">
