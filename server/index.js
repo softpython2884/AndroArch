@@ -109,11 +109,24 @@ io.on('connection', (socket) => {
   });
 });
 
-// Periodic System Status Update (Simulated)
-setInterval(() => {
-  const cpu = Math.floor(Math.random() * 30) + 10; // 10-40%
-  const ram = Math.floor(Math.random() * 20) + 40; // 40-60%
-  io.emit('system_status', { cpu, ram });
+const si = require('systeminformation');
+
+// Periodic System Status Update (Real)
+setInterval(async () => {
+  try {
+    const cpu = await si.currentLoad();
+    const mem = await si.mem();
+    const battery = await si.battery();
+
+    io.emit('system_status', {
+      cpu: Math.round(cpu.currentLoad),
+      ram: Math.round((mem.active / mem.total) * 100),
+      battery: battery.hasBattery ? battery.percent : 100,
+      charging: battery.isCharging
+    });
+  } catch (e) {
+    console.error('Stats error:', e);
+  }
 }, 2000);
 
 const PORT = process.env.PORT || 3000;

@@ -43,9 +43,20 @@ const TerminalApp = () => {
 
             if (cmd === 'clear') {
                 setHistory([]);
+            } else if (cmd === 'neofetch') {
+                setHistory(prev => [...prev,
+                    "       /\\        OS: AndroArch v1.0",
+                    "      /  \\       Host: Cyberdyne T-800",
+                    "     /    \\      Kernel: 5.15.0-generic",
+                    "    /      \\     Uptime: Forever",
+                    "   /   ||   \\    Shell: bash 5.0",
+                    "  /    ||    \\   Resolution: 1080x1920",
+                    " /     ||     \\  CPU: Neural Net Processor",
+                    "/______||______\\ Memory: Infinite"
+                ]);
             } else if (cmd === 'help') {
                 setHistory(prev => [...prev,
-                    "Local Commands: clear, help",
+                    "Local Commands: clear, help, neofetch",
                     "Remote Commands: Any terminal command execution on server (dir, ipconfig, ping, etc.)"
                 ]);
             } else {

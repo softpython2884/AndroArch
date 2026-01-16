@@ -13,7 +13,8 @@ export const SettingsProvider = ({ children }) => {
             volume: 80,
             theme: 'dark', // 'dark' | 'light' | 'amoled'
             wifi: true,
-            bluetooth: true
+            bluetooth: true,
+            wallpaper: null // null uses default
         };
     });
 

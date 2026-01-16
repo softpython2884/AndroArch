@@ -1,92 +1,180 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Wifi, Bluetooth } from 'lucide-react';
+import { Lock, Unlock, Delete, ChevronUp } from 'lucide-react';
 import { GlassPane } from '../ui/GlassPane';
-import wallpaper from '../../assets/wallpaper.png';
 
 const LockScreen = ({ isLocked, onUnlock }) => {
+    const [pin, setPin] = useState("");
+    const [error, setError] = useState(false);
+    const [showPin, setShowPin] = useState(false); // Controls PIN screen visibility
     const [time, setTime] = useState(new Date());
 
+    const CORRECT_PIN = "1234";
+
     useEffect(() => {
-        const t = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(t);
+        const timer = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timer);
     }, []);
+
+    const handleNum = (num) => {
+        if (pin.length < 4) {
+            setPin(prev => prev + num);
+            setError(false);
+        }
+    };
+
+    const handleDelete = () => {
+        setPin(prev => prev.slice(0, -1));
+    };
+
+    useEffect(() => {
+        if (pin.length === 4) {
+            if (pin === CORRECT_PIN) {
+                onUnlock();
+                setPin("");
+                setShowPin(false);
+            } else {
+                setError(true);
+                setTimeout(() => setPin(""), 500);
+            }
+        }
+    }, [pin, onUnlock]);
 
     return (
         <AnimatePresence>
             {isLocked && (
                 <motion.div
-                    initial={{ y: 0, opacity: 1 }}
-                    exit={{ y: -800, opacity: 0, transition: { duration: 0.5, ease: [0.32, 0.72, 0, 1] } }}
-                    className="fixed inset-0 z-[100] bg-black text-white flex flex-col items-center justify-between pb-10 overflow-hidden"
+                    initial={{ y: 0 }}
+                    exit={{ y: '-100%', opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl text-white overflow-hidden"
                 >
-                    {/* Background with heavy blur if notifications exist, usually clear on lockscreen */}
-                    <div
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${wallpaper})` }}
-                    >
-                        <div className="absolute inset-0 bg-black/30"></div>
-                    </div>
-
-                    {/* Status Bar Placeholder (Lock Screen version) */}
-                    <div className="z-10 w-full flex justify-between px-6 py-3 text-xs opacity-80">
-                        <span>Vodafone FR</span>
-                        <div className="flex gap-2">
-                            <Wifi size={14} />
-                            <span>100%</span>
-                        </div>
-                    </div>
-
-                    {/* Clock Area */}
-                    <div className="z-10 flex flex-col items-center mt-12 w-full text-center">
-                        <h1 className="text-8xl font-thin tracking-tighter text-white drop-shadow-lg">
-                            {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </h1>
-                        <p className="text-lg font-normal text-white/90 mt-2 capitalize drop-shadow-md">
-                            {time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
-                        </p>
-                    </div>
-
-                    {/* Notifications Mockup */}
-                    <div className="z-10 w-full px-4 flex-1 flex flex-col justify-center gap-2 max-w-sm">
-                        <GlassPane blur="md" className="p-4 rounded-2xl flex gap-3 items-center">
-                            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                                <span className="text-xl">💬</span>
-                            </div>
-                            <div className="flex-1">
-                                <h4 className="text-sm font-semibold">Discord</h4>
-                                <p className="text-xs opacity-70">New message from @Neo</p>
-                            </div>
-                            <span className="text-[10px] opacity-50">2m</span>
-                        </GlassPane>
-                    </div>
-
-                    {/* Bottom Action */}
+                    {/* ==================== SCREEN 1: CLOCK & NOTIFICATIONS ==================== */}
                     <motion.div
-                        className="z-10 flex flex-col items-center gap-3 w-full"
-                        drag="y"
-                        dragConstraints={{ top: 0, bottom: 0 }}
-                        onDragEnd={(e, { offset, velocity }) => {
-                            if (offset.y < -100 || velocity.y < -500) {
-                                onUnlock();
-                            }
+                        className="absolute inset-0 flex flex-col items-center pt-24 pb-8"
+                        initial={{ opacity: 1, y: 0 }}
+                        animate={{
+                            opacity: showPin ? 0 : 1,
+                            y: showPin ? -50 : 0,
+                            scale: showPin ? 0.9 : 1
                         }}
+                        transition={{ duration: 0.4 }}
+                        style={{ pointerEvents: showPin ? 'none' : 'auto' }}
                     >
-                        <div className="flex items-center gap-2 mb-4 opacity-80">
-                            <Lock size={16} />
-                            <span className="text-sm font-medium">Swipe up to unlock</span>
+                        {/* Clock */}
+                        <div className="mb-12 text-center">
+                            <h1 className="text-7xl font-thin tracking-tighter drop-shadow-lg">
+                                {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </h1>
+                            <p className="text-xl font-light opacity-80 drop-shadow-md">
+                                {time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+                            </p>
                         </div>
 
-                        {/* Bottom Handles / Shortcuts */}
-                        <div className="flex justify-between w-full px-8">
-                            <GlassPane className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer active:scale-95 transition-transform" blur="lg">
-                                <span className="text-xl">🔦</span>
+                        {/* Notifications */}
+                        <div className="w-full px-6 flex-1 flex flex-col gap-3 items-center max-w-sm">
+                            <GlassPane blur="md" className="w-full p-4 rounded-2xl flex gap-3 items-center cursor-pointer active:scale-[0.98]">
+                                <div className="w-10 h-10 rounded-full bg-[#5865F2] flex items-center justify-center shrink-0">
+                                    <span className="text-xl">💬</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-bold">Discord</h4>
+                                    <p className="text-xs opacity-90 truncate">New message from @Neo: "Wake up..."</p>
+                                </div>
+                                <span className="text-[10px] opacity-60">2m</span>
                             </GlassPane>
-                            <GlassPane className="w-12 h-12 rounded-full flex items-center justify-center cursor-pointer active:scale-95 transition-transform" blur="lg">
-                                <span className="text-xl">📷</span>
+
+                            <GlassPane blur="md" className="w-full p-4 rounded-2xl flex gap-3 items-center cursor-pointer active:scale-[0.98]">
+                                <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center shrink-0">
+                                    <span className="text-xl">📧</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-bold">Gmail</h4>
+                                    <p className="text-xs opacity-90 truncate">Job Offer: Cyberdyne Systems</p>
+                                </div>
+                                <span className="text-[10px] opacity-60">12m</span>
                             </GlassPane>
+                        </div>
+
+                        {/* Swipe Up Indicator */}
+                        <motion.div
+                            className="mt-auto flex flex-col items-center gap-2 cursor-pointer w-full py-8"
+                            drag="y"
+                            dragConstraints={{ top: 0, bottom: 0 }}
+                            dragElastic={0.2}
+                            onDragEnd={(e, { offset, velocity }) => {
+                                if (offset.y < -50 || velocity.y < -300) {
+                                    setShowPin(true);
+                                }
+                            }}
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            <ChevronUp size={24} className="opacity-50" />
+                            <span className="text-xs font-medium tracking-widest opacity-50 uppercase">Swipe to Unlock</span>
+                        </motion.div>
+                    </motion.div>
+
+
+                    {/* ==================== SCREEN 2: PIN PAD ==================== */}
+                    <motion.div
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-2xl"
+                        initial={{ y: '100%' }}
+                        animate={{ y: showPin ? 0 : '100%' }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    >
+                        <div className="flex flex-col items-center w-full max-w-xs">
+
+                            <div className="mb-8 text-sm font-medium tracking-widest uppercase opacity-70">
+                                Enter Passcode
+                            </div>
+
+                            {/* PIN Dots */}
+                            <div className="flex gap-6 mb-12">
+                                {[...Array(4)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-4 h-4 rounded-full border border-white/30 transition-all duration-200 ${i < pin.length
+                                                ? error ? "bg-red-500 border-red-500" : "bg-white border-white"
+                                                : "bg-transparent"
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Numpad */}
+                            <div className="grid grid-cols-3 gap-x-8 gap-y-6 mb-12">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                                    <button
+                                        key={num}
+                                        onClick={() => handleNum(num.toString())}
+                                        className="w-20 h-20 rounded-full bg-white/5 hover:bg-white/10 active:bg-white/20 transition-all flex items-center justify-center text-3xl font-light"
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <div /> {/* Spacer */}
+                                <button
+                                    onClick={() => handleNum("0")}
+                                    className="w-20 h-20 rounded-full bg-white/5 hover:bg-white/10 active:bg-white/20 transition-all flex items-center justify-center text-3xl font-light"
+                                >
+                                    0
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="w-20 h-20 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all active:scale-90"
+                                >
+                                    {/* If PIN is empty, show 'Cancel' button to go back */}
+                                    {pin.length === 0 ? (
+                                        <span className="text-sm font-medium uppercase tracking-wide" onClick={() => setShowPin(false)}>Cancel</span>
+                                    ) : (
+                                        <Delete size={28} />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
+
                 </motion.div>
             )}
         </AnimatePresence>

@@ -18,6 +18,8 @@ import CalculatorApp from './apps/CalculatorApp';
 import GalleryApp from './apps/GalleryApp';
 import SettingsApp from './apps/SettingsApp';
 import MusicApp from './apps/MusicApp';
+import SystemMonitorApp from './apps/SystemMonitorApp';
+import CameraApp from './apps/CameraApp';
 
 import wallpaper from './assets/wallpaper.png';
 
@@ -30,7 +32,11 @@ const AppIcon = ({ label, icon: Icon, onClick }) => (
   </div>
 );
 
+import { useSettings } from './context/SettingsContext';
+
 function App() {
+  const { settings } = useSettings();
+
   // System State
   const [serverStatus, setServerStatus] = useState('OFFLINE');
   const [sysStats, setSysStats] = useState({ cpu: 0, ram: 0 });
@@ -49,6 +55,8 @@ function App() {
     return () => socket.disconnect();
   }, []);
 
+  // Connect to Backend ...
+
   return (
     <div className="h-screen w-screen bg-black text-white overflow-hidden relative selection:bg-none font-sans">
 
@@ -56,7 +64,7 @@ function App() {
       <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out transform-gpu"
         style={{
-          backgroundImage: `url(${wallpaper})`,
+          backgroundImage: `url(${settings.wallpaper || wallpaper})`,
           transform: isLocked ? 'scale(1)' : 'scale(1.05)',
           filter: openApp ? 'blur(20px) brightness(0.5)' : 'blur(0px) brightness(0.9)'
         }}
@@ -111,7 +119,7 @@ function App() {
             <AppIcon label="Settings" icon={Settings} onClick={() => setOpenApp('settings')} />
             <AppIcon label="Music" icon={Music} onClick={() => setOpenApp('music')} />
             <AppIcon label="Calc" icon={Calculator} onClick={() => setOpenApp('calc')} />
-            <AppIcon label="Gallery" icon={Camera} onClick={() => setOpenApp('gallery')} />
+            <AppIcon label="Camera" icon={Camera} onClick={() => setOpenApp('gallery')} />
           </div>
 
           {/* Quick Search Pill */}
@@ -155,8 +163,8 @@ function App() {
         <CalculatorApp />
       </Window>
 
-      <Window isOpen={openApp === 'gallery'} onClose={() => setOpenApp(null)} title="Gallery">
-        <GalleryApp />
+      <Window isOpen={openApp === 'gallery'} onClose={() => setOpenApp(null)} title="Camera">
+        <CameraApp />
       </Window>
 
       <Window isOpen={openApp === 'youtube'} onClose={() => setOpenApp(null)} title="YouTube">
@@ -170,14 +178,8 @@ function App() {
         </div>
       </Window>
 
-      <Window isOpen={openApp === 'sysmon'} onClose={() => setOpenApp(null)} title="System">
-        <div className="p-8 flex flex-col items-center justify-center h-full">
-          <Activity size={64} className="text-white/20 mb-8" />
-          <div className="text-2xl font-light mb-2">{sysStats.cpu}% CPU</div>
-          <div className="text-sm opacity-50 mb-8">System Load</div>
-          <div className="text-2xl font-light mb-2">{sysStats.ram}% RAM</div>
-          <div className="text-sm opacity-50">Memory Usage</div>
-        </div>
+      <Window isOpen={openApp === 'sysmon'} onClose={() => setOpenApp(null)} title="System Monitor">
+        <SystemMonitorApp />
       </Window>
 
       <Window isOpen={openApp === 'music'} onClose={() => setOpenApp(null)} title="Music">

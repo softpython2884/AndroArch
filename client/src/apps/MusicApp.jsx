@@ -4,18 +4,46 @@ import { Play, Pause, SkipBack, SkipForward, Disc, Music } from 'lucide-react';
 const MusicApp = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(30);
-    const [track, setTrack] = useState({ title: "Neon Nights", artist: "Synthwave Boy", duration: "3:45" });
+    const [track, setTrack] = useState({
+        title: "Neon Nights",
+        artist: "Synthwave Boy",
+        duration: "3:45",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" // Copyright Free Placeholder
+    });
 
-    // Simulate progress
+    const audioRef = useRef(new Audio(track.url));
+
     useEffect(() => {
-        let interval;
+        const audio = audioRef.current;
+        audio.loop = true;
+
+        const updateProgress = () => {
+            if (audio.duration) {
+                setProgress((audio.currentTime / audio.duration) * 100);
+            }
+        };
+
+        audio.addEventListener('timeupdate', updateProgress);
+        return () => {
+            audio.removeEventListener('timeupdate', updateProgress);
+            audio.pause(); // Cleanup on unmount
+        };
+    }, []);
+
+    useEffect(() => {
         if (isPlaying) {
-            interval = setInterval(() => {
-                setProgress(p => (p >= 100 ? 0 : p + 1));
-            }, 1000);
+            audioRef.current.play().catch(e => console.error("Audio Play Error:", e));
+        } else {
+            audioRef.current.pause();
         }
-        return () => clearInterval(interval);
     }, [isPlaying]);
+
+    const formatTime = (time) => {
+        if (!time || isNaN(time)) return "0:00";
+        const min = Math.floor(time / 60);
+        const sec = Math.floor(time % 60);
+        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    };
 
     return (
         <div className="h-full flex flex-col bg-gradient-to-br from-indigo-900 to-black p-8 text-white">
@@ -38,13 +66,20 @@ const MusicApp = () => {
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mb-8 group cursor-pointer">
+                <div className="mb-8 group cursor-pointer" onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    if (audioRef.current.duration) {
+                        audioRef.current.currentTime = percent * audioRef.current.duration;
+                        setProgress(percent * 100);
+                    }
+                }}>
                     <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white transition-all duration-300" style={{ width: `${progress}%` }}></div>
+                        <div className="h-full bg-white transition-all duration-100 ease-linear" style={{ width: `${progress}%` }}></div>
                     </div>
                     <div className="flex justify-between text-[10px] text-white/40 mt-2 font-mono">
-                        <span>1:12</span>
-                        <span>{track.duration}</span>
+                        <span>{formatTime(audioRef.current?.currentTime)}</span>
+                        <span>{formatTime(audioRef.current?.duration || 225)}</span>
                     </div>
                 </div>
 
