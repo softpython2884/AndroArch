@@ -66,6 +66,23 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+// Weather Geocoding Proxy (Nominatim)
+app.get('/api/weather/geocoding', async (req, res) => {
+  const { lat, lon } = req.query;
+  if (!lat || !lon) return res.status(400).json({ error: "Missing coordinates" });
+
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=11`;
+    const response = await axios.get(url, {
+      headers: { 'User-Agent': 'AndroArch-OS/1.0' }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('[Weather Proxy] Error:', error.message);
+    res.status(500).json({ error: "Geocoding failed" });
+  }
+});
+
 // YouTube Search Route
 app.get('/api/youtube/search', async (req, res) => {
   const query = req.query.q;

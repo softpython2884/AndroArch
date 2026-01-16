@@ -1,0 +1,12 @@
+{
+    "ignore": [
+        "*.js-*",
+        "*-player-script.js",
+        "node_modules/",
+        "dumps/"
+    ],
+    "watch": [
+        "index.js"
+    ],
+    "ext": "js,json"
+}

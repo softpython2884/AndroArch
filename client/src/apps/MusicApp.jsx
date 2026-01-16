@@ -5,19 +5,19 @@ const tracks = [
     {
         title: "Neon Nights",
         artist: "Synthwave Boy",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", // Keeping one for now but adding error handling
         cover: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&w=500&q=80"
     },
     {
         title: "Cyber Drift",
         artist: "Data Ghost",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        url: "https://cdn.pixabay.com/audio/2022/03/10/audio_c35278132a.mp3", // Reliable Pixabay link
         cover: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=500&q=80"
     },
     {
         title: "Orbit Pulse",
         artist: "Lunar Echo",
-        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+        url: "https://cdn.pixabay.com/audio/2023/10/18/audio_82335198e0.mp3", // Reliable Pixabay link
         cover: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=500&q=80"
     }
 ];
@@ -55,9 +55,10 @@ const MusicApp = () => {
 
         return () => {
             if (audioRef.current) {
+                audioRef.current.pause();
                 audioRef.current.removeEventListener('timeupdate', updateProgress);
                 audioRef.current.removeEventListener('ended', handleEnded);
-                audioRef.current.pause();
+                audioRef.current = null;
             }
         };
     }, [currentTrackIndex]);

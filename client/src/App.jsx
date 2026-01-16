@@ -73,9 +73,7 @@ function App() {
     const fetchWeatherData = async (lat, lon) => {
       // 1. Fetch Location
       try {
-        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=11`, {
-          headers: { 'User-Agent': 'AndroArch-OS/1.0' }
-        });
+        const geoRes = await fetch(`http://localhost:3000/api/weather/geocoding?lat=${lat}&lon=${lon}`);
         const geoData = await geoRes.json();
 
         // Extended city detection
