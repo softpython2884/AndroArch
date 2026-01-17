@@ -40,15 +40,15 @@ const GoolagApp = () => {
     // --- Browser View ---
     if (currentUrl) {
         return (
-            <div className="flex flex-col h-full bg-white text-black">
+            <div className="flex flex-col h-full bg-white text-black overflow-hidden relative">
                 {/* Browser Toolbar */}
-                <div className="flex items-center gap-2 p-3 bg-gray-100 border-b border-gray-300 shadow-sm z-20">
+                <div className="flex items-center gap-2 p-3 bg-gray-100 border-b border-gray-300 shadow-sm z-30">
                     <button onClick={goBack} className="p-2 hover:bg-gray-200 rounded-full text-black transition-colors active:scale-95">
                         <ArrowLeft size={18} />
                     </button>
-                    <div className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-1.5 text-sm text-gray-700 flex items-center gap-2 shadow-inner">
-                        <Globe size={14} className="opacity-50" />
-                        <span className="truncate flex-1">{currentUrl}</span>
+                    <div className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-1.5 text-sm text-gray-700 flex items-center gap-2 shadow-inner overflow-hidden">
+                        <Globe size={14} className="opacity-50 shrink-0" />
+                        <span className="truncate flex-1 font-mono text-[10px]">{currentUrl}</span>
                     </div>
                     <button onClick={() => setCurrentUrl(currentUrl)} className="p-2 hover:bg-gray-200 rounded-full text-black transition-colors active:scale-95">
                         <RotateCcw size={18} />
@@ -56,13 +56,20 @@ const GoolagApp = () => {
                 </div>
 
                 {/* Web Content */}
-                <iframe
-                    src={currentUrl}
-                    className="flex-1 w-full h-full border-none bg-white z-10"
-                    title="Goolag Browser"
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads"
-                    referrerPolicy="no-referrer"
-                />
+                <div className="flex-1 w-full h-full relative overflow-hidden bg-white pointer-events-auto">
+                    <iframe
+                        src={currentUrl}
+                        className="w-full h-full border-none bg-white z-10 pointer-events-auto"
+                        title="Goolag Browser"
+                        scrolling="yes"
+                        style={{ touchAction: 'auto' }}
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads allow-top-navigation-by-user-activation"
+                        referrerPolicy="no-referrer"
+                    />
+                </div>
+                <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 pointer-events-none z-50">
+                    <span className="text-[9px] text-white/40 uppercase font-black tracking-widest">Safe Mode Active</span>
+                </div>
             </div>
         );
     }

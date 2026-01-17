@@ -27,42 +27,52 @@ AndroArch is divided into three distinct modules:
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start & Launch Guide
 
-### 1. Prerequisites
-*   [Node.js](https://nodejs.org/) (Project tested on Node 20+)
-*   Linux (Recommended) or Windows.
+AndroArch requires the **Server**, **Client**, and **Admin** to be running simultaneously.
 
-### 2. Installation
+### 1. Installation
+Run this in the root directory to install all dependencies for all modules:
+*   **Linux**: `chmod +x scripts/linux/setup.sh && ./scripts/linux/setup.sh`
+*   **Windows**: You must manually run `npm install` inside the `/server`, `/client`, and `/admin` folders.
+
+### 2. Launching the System
+#### 🪟 On Windows (Easy Method)
+Double-click the **`dev.cmd`** file at the root. It will open three terminal windows automatically:
+1.  **Node Server** (Port 3000)
+2.  **OS Client** (Port 5173 - Exposed to network)
+3.  **Admin Panel** (Port 5174)
+
+#### 🐧 On Linux
 ```bash
-# Clone the repository
-git clone https://github.com/youruser/AndroArch.git
-cd AndroArch
-
-# Auto-setup (Linux)
-chmod +x scripts/linux/setup.sh
-./scripts/linux/setup.sh
-
-# Manual (Windows)
-# Run 'npm install' in /server, /client, and /admin
+chmod +x scripts/linux/launcher.sh
+./scripts/linux/launcher.sh
 ```
-
-### 3. Launch
-*   **Linux**: `./scripts/linux/launcher.sh`
-*   **Windows**: Run `npm run dev` in each of the three directories.
 
 ---
 
-## 📡 Connectivity
+## 📡 Connecting your Phone (The "Nomad" Setup)
 
-AndroArch is designed to be accessed from a phone. Here are the 4 recommended link methods:
+To use your phone as the primary interface, follow these steps:
 
-| Method | Latency | Complexity | Description |
-| :--- | :--- | :--- | :--- |
-| **Hotspot** | Low | Very Easy | PC connects to phone's Wi-Fi hotspot. |
-| **USB Tethering** | Minimal | Medium | Phone connects via USB cable (High speed + Charging). |
-| **Server AP** | Low | Medium | PC creates own Wi-Fi network for clients. |
-| **Bluetooth PAN**| High | Expert | Experimental slow-link for emergency data. |
+### Step 1: Network Link
+Both the PC and the Phone **MUST** be on the same local network.
+*   **Recommended**: Turn on your phone's **Mobile Hotspot** and connect your laptop to it.
+
+### Step 2: Open Windows Firewall (Windows only)
+By default, Windows blocks incoming connections.
+1.  Go to `scripts/win/`
+2.  Right-click **`fix_connectivity.bat`** and select **"Run as Administrator"**.
+3.  This opens ports 3000, 5173, and 5174.
+
+### Step 3: Find your Local IP
+If you don't know your PC's IP address:
+1.  Run **`scripts/win/check_ip.bat`**.
+2.  It will display a list of IPs. Look for the one that looks like `10.141.12.x` or `192.168.x.x`.
+
+### Step 4: Access on Phone
+Open your phone's browser and type the URL shown by the script, for example:
+`http://10.141.12.4:5173`
 
 ---
 
