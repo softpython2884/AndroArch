@@ -83,5 +83,147 @@ Open your phone's browser and type the URL shown by the script, for example:
 
 ---
 
-## 📜 License
-MIT - Created for the Hacker Nomad lifestyle. Stay safe out there. 💀⚡
+---
+
+## 📱 Android / Termux Guide (Experimental)
+
+AndroArch can run on **Android** using **Termux**, turning your phone into a portable sub-node.  
+⚠️ This setup is **experimental** and performance depends heavily on your device.
+
+---
+
+### ⚠️ Important Notes
+- Termux **must be installed from F-Droid**, not Google Play.
+- Android devices have **limited CPU/RAM** compared to PCs.
+- Running **Server + Client + Admin** simultaneously may cause lag.
+- The **Admin panel is optional** and can be disabled to improve performance.
+
+---
+
+## 🧩 Requirements
+- Android device
+- Termux (F-Droid version)
+- Node.js (installed via Termux)
+- Git
+
+---
+
+## 📦 Installation
+
+pkg update && pkg upgrade
+pkg install git nodejs iproute2
+
+
+Clone the repository:
+
+git clone https://github.com/softpython2884/AndroArch.git
+cd AndroArch
+
+Install dependencies:
+
+npm install
+cd server && npm install
+cd ../client && npm install
+cd ../admin && npm install
+cd ..
+
+
+If you encounter missing dependencies (e.g. lucide-react):
+
+cd admin
+npm install lucide-react
+cd ..
+
+---
+
+## 🚀 Termux Launcher
+
+AndroArch includes a dedicated Termux launcher to run multiple services simultaneously.
+
+*   **📁 Location**: `scripts/termux/launcher.sh`
+
+### 1. Setup
+Make the script executable:
+```bash
+chmod +x scripts/termux/launcher.sh
+```
+
+### 2. Launch Modes
+*   **🔥 Full Mode** (Server + Client + Admin):
+    ```bash
+    ./scripts/termux/launcher.sh
+    ```
+    ./scripts/termux/launcher.sh no-admin
+    ```
+
+⚠️ **Note**: Disabling the Admin panel significantly reduces CPU and RAM usage and is recommended on low-end or mid-range phones.
+
+---
+
+## 📡 Connecting on Android
+
+### 1. Find your IP
+Run the launcher and look for the "Local IP" line:
+```bash
+./scripts/termux/launcher.sh
+```
+Example output:
+```
+📡 Local IP: [IP_ADDRESS]
+```
+
+### 2. Open on Phone
+Open your phone's browser (Chrome, Firefox, etc.) and enter:
+```
+http://[IP_ADDRESS]
+```
+
+### 3. Troubleshooting
+If the connection fails:
+- Ensure Termux is installed from **F-Droid**
+- Check that your phone and PC are on the **same Wi-Fi network**
+- Some Android versions block background services - try running in **Performance Mode** (no-admin)
+- Disable **battery optimization** for Termux
+
+---
+
+## 🔧 Performance Tips for Android
+
+### Disable Admin Panel (Recommended)
+```bash
+./scripts/termux/launcher.sh no-admin
+```
+
+### Reduce Client Quality
+Edit `client/src/App.jsx` and change:
+```javascript
+const QUALITY_OPTIONS = [
+  { label: "4K", value: 2160 },
+  { label: "2K", value: 1440 },
+  { label: "1080p", value: 1080 },
+  { label: "720p", value: 720 },
+  { label: "480p", value: 480 },
+  { label: "360p", value: 360 },
+  { label: "240p", value: 240 },
+  { label: "144p", value: 144 }
+];
+```
+To:
+```javascript
+const QUALITY_OPTIONS = [
+  { label: "720p", value: 720 },
+  { label: "480p", value: 480 },
+  { label: "360p", value: 360 },
+  { label: "240p", value: 240 },
+  { label: "144p", value: 144 }
+];
+```
+
+### Disable Animations
+Edit `client/src/App.jsx` and change:
+```javascript
+<AnimatePresence>
+```
+to:
+```javascript
+<>

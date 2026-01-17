@@ -33,16 +33,19 @@ CLIENT_PID=$!
 cd ..
 
 # ADMIN
-echo "🖥️ Launching Admin Dashboard (5174)..."
-cd admin
-npx vite --host &
-ADMIN_PID=$!
-cd ..
+read -p "🚀 Want launch admin panel? (y/N) " launch_admin
+if [[ "$launch_admin" =~ ^[Yy]$ ]]; then
+  echo "🖥️ Launching Admin Dashboard (5174)..."
+  cd admin
+  npx vite --host &
+  ADMIN_PID=$!
+  cd ..
+fi
 
 echo ""
 echo "✅ AndroArch Online"
 echo "🔗 Client: http://$IP:5173"
-echo "🔗 Admin : http://$IP:5174"
+[ -n "$ADMIN_PID" ] && echo "🔗 Admin : http://$IP:5174"
 echo ""
 echo "📡 Press Ctrl+C to disconnect"
 
