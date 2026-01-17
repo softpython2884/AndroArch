@@ -29,8 +29,8 @@ echo "🖥️ Launching Admin Dashboard (Port 5174)..."
 cd "$ROOT_DIR/admin" && npm run dev &
 
 echo "✅ System Online."
-echo "🔗 Client: http://$(hostname -I | awk '{print $1}'):5173"
-echo "🔗 Admin: http://$(hostname -I | awk '{print $1}'):5174"
+echo "🔗 Client: http://$(ip route get 1 | awk '{print $7}'):5173"
+echo "🔗 Admin: http://$(ip route get 1 | awk '{print $7}'):5174"
 echo "📡 Press Ctrl+C to disconnect."
 
 # Keep alive
