@@ -52,6 +52,14 @@ function App() {
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [openApp, setOpenApp] = useState(null);
   const [appArgs, setAppArgs] = useState(null);
+  const [bootstrapped, setBootstrapped] = useState(false);
+
+  const handleBootstrap = () => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => { });
+    }
+    setBootstrapped(true);
+  };
 
   // Helper to launch apps with data
   const launchApp = (appName, args = null) => {
@@ -173,6 +181,48 @@ function App() {
   return (
     <MessagingProvider socket={socketRef.current}>
       <div className="h-screen w-screen bg-black text-white overflow-hidden relative selection:bg-none font-sans">
+
+        {/* Fullscreen Bootstrap Overlay */}
+        <AnimatePresence>
+          {!bootstrapped && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center p-8 text-center"
+            >
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="max-w-xs w-full"
+              >
+                <div className="w-24 h-24 bg-blue-500/10 border border-blue-500/20 rounded-[2.5rem] flex items-center justify-center mb-8 mx-auto relative group">
+                  <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full opacity-50 animate-pulse"></div>
+                  <Globe size={40} className="text-blue-500 relative z-10" />
+                </div>
+
+                <h1 className="text-2xl font-black uppercase tracking-[0.2em] mb-4">Neural Link</h1>
+                <p className="text-xs text-white/40 mb-12 leading-relaxed">
+                  Establish secure connection to the Arch Node. <br />
+                  <span className="font-mono text-[10px] opacity-60">System ID: {window.location.hostname}</span>
+                </p>
+
+                <button
+                  onClick={handleBootstrap}
+                  className="w-full py-5 bg-white text-black rounded-3xl font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all hover:bg-white/90"
+                >
+                  Link Startup
+                </button>
+
+                <div className="mt-8 flex items-center justify-center gap-2 opacity-20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Awaiting Command</span>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* 1. Wallpaper Layer */}
         <div
