@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { io } from 'socket.io-client';
-import { Terminal, Globe, Activity, Settings, Phone, MessageCircle, Camera, Music, Calendar, Twitch, Youtube, Calculator, HelpCircle, AlertCircle, X } from 'lucide-react';
+import { Terminal, Globe, Activity, Settings, UserPlus, MessageCircle, Camera, Music, Calendar, Twitch, Youtube, Calculator, HelpCircle, AlertCircle, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // OS Components
@@ -23,6 +23,8 @@ import SystemMonitorApp from './apps/SystemMonitorApp';
 import CameraApp from './apps/CameraApp';
 import WeatherApp from './apps/WeatherApp';
 import YoutubeApp from './apps/YoutubeApp';
+import MessagingApp from './apps/MessagingApp';
+import { MessagingProvider } from './context/MessagingContext';
 
 import wallpaper from './assets/wallpaper.png';
 
@@ -68,16 +70,23 @@ function App() {
 
   const { addNotification } = useNotifications();
 
+  const socketRef = useRef(null);
+  const [isSocketReady, setIsSocketReady] = useState(false);
+
   // Connect to Backend & Fetch Weather
   useEffect(() => {
     // Socket
     const socket = io('http://localhost:3000');
+    socketRef.current = socket;
+
     socket.on('connect', () => {
       setServerStatus('CONNECTED');
+      setIsSocketReady(true);
       addNotification({ title: 'Kernel', message: 'System link established.', type: 'success' });
     });
     socket.on('disconnect', () => {
       setServerStatus('OFFLINE');
+      setIsSocketReady(false);
       addNotification({ title: 'Kernel', message: 'System link lost.', type: 'error', persistent: true });
     });
     socket.on('system_status', (stats) => setSysStats(stats));
@@ -159,159 +168,161 @@ function App() {
   // Connect to Backend ...
 
   return (
-    <div className="h-screen w-screen bg-black text-white overflow-hidden relative selection:bg-none font-sans">
+    <MessagingProvider socket={socketRef.current}>
+      <div className="h-screen w-screen bg-black text-white overflow-hidden relative selection:bg-none font-sans">
 
-      {/* 1. Wallpaper Layer */}
-      <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out transform-gpu"
-        style={{
-          backgroundImage: `url(${settings.wallpaper || wallpaper})`,
-          transform: isLocked ? 'scale(1)' : 'scale(1.05)',
-          filter: openApp ? 'blur(20px) brightness(0.5)' : 'blur(0px) brightness(0.9)'
-        }}
-      />
+        {/* 1. Wallpaper Layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out transform-gpu"
+          style={{
+            backgroundImage: `url(${settings.wallpaper || wallpaper})`,
+            transform: isLocked ? 'scale(1)' : 'scale(1.05)',
+            filter: openApp ? 'blur(20px) brightness(0.5)' : 'blur(0px) brightness(0.9)'
+          }}
+        />
 
-      {/* 2. Lock Screen Layer (Z-50) */}
-      <LockScreen isLocked={isLocked} onUnlock={() => setIsLocked(false)} />
+        {/* 2. Lock Screen Layer (Z-50) */}
+        <LockScreen isLocked={isLocked} onUnlock={() => setIsLocked(false)} />
 
-      {/* 3. OS Interface Layer */}
-      <motion.div
-        animate={{ opacity: isLocked ? 0 : 1, scale: isLocked ? 0.95 : 1 }}
-        transition={{ duration: 0.5 }}
-        className="absolute inset-0 flex flex-col pointer-events-auto"
-      >
-        {/* Status Bar */}
-        <div onClick={() => setIsControlCenterOpen(true)} className="pt-4 px-2">
-          <StatusBar />
-        </div>
+        {/* 3. OS Interface Layer */}
+        <motion.div
+          animate={{ opacity: isLocked ? 0 : 1, scale: isLocked ? 0.95 : 1 }}
+          transition={{ duration: 0.5 }}
+          className="absolute inset-0 flex flex-col pointer-events-auto"
+        >
+          {/* Status Bar */}
+          <div onClick={() => setIsControlCenterOpen(true)} className="pt-4 px-2">
+            <StatusBar />
+          </div>
 
-        {/* Desktop Area - Optimized for Tall Screens */}
-        <div className="flex-1 px-6 flex flex-col pt-12 pb-32 z-10">
+          {/* Desktop Area - Optimized for Tall Screens */}
+          <div className="flex-1 px-6 flex flex-col pt-12 pb-32 z-10">
 
-          {/* Widgets Area */}
-          <div
-            onClick={() => setOpenApp('weather')}
-            className="w-full h-40 bg-white/5 rounded-[30px] border border-white/10 backdrop-blur-md p-6 mb-8 flex flex-col justify-between shadow-2xl backdrop-saturate-150 relative overflow-hidden group cursor-pointer active:scale-95 transition-transform"
-          >
-            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="flex justify-between items-start z-10">
-              <div className="flex flex-col">
-                <h3 className="text-lg font-semibold tracking-tight">{weather.location}</h3>
-                <div className="flex items-center gap-1 text-xs opacity-60 font-medium uppercase tracking-wider">
-                  <Globe size={10} />
-                  <span>{weather.condition}</span>
+            {/* Widgets Area */}
+            <div
+              onClick={() => setOpenApp('weather')}
+              className="w-full h-40 bg-white/5 rounded-[30px] border border-white/10 backdrop-blur-md p-6 mb-8 flex flex-col justify-between shadow-2xl backdrop-saturate-150 relative overflow-hidden group cursor-pointer active:scale-95 transition-transform"
+            >
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="flex justify-between items-start z-10">
+                <div className="flex flex-col">
+                  <h3 className="text-lg font-semibold tracking-tight">{weather.location}</h3>
+                  <div className="flex items-center gap-1 text-xs opacity-60 font-medium uppercase tracking-wider">
+                    <Globe size={10} />
+                    <span>{weather.condition}</span>
+                  </div>
                 </div>
+                <span className="text-5xl font-extralight tracking-tighter">{weather.temp}°</span>
               </div>
-              <span className="text-5xl font-extralight tracking-tighter">{weather.temp}°</span>
+              <div className="text-xs opacity-50 flex justify-between font-mono font-medium z-10">
+                <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }).toUpperCase()}</span>
+                <span>Updated Just Now</span>
+              </div>
             </div>
-            <div className="text-xs opacity-50 flex justify-between font-mono font-medium z-10">
-              <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }).toUpperCase()}</span>
-              <span>Updated Just Now</span>
+
+            {/* Spacer */}
+            <div className="flex-1"></div>
+
+            {/* App Grid - Centered Lower */}
+            <div className="grid grid-cols-4 gap-x-5 gap-y-8 place-items-center mb-8">
+              <AppIcon label="Web" icon={Globe} onClick={() => launchApp('goolag')} />
+              <AppIcon label="Term" icon={Terminal} onClick={() => launchApp('terminal')} />
+              <AppIcon label="TubeArch" icon={Youtube} onClick={() => launchApp('youtube')} />
+              <AppIcon label="Stream" icon={Twitch} onClick={() => launchApp('twitch')} />
+
+              <AppIcon label="Settings" icon={Settings} onClick={() => launchApp('settings')} />
+              <AppIcon label="Music" icon={Music} onClick={() => launchApp('music')} />
+              <AppIcon label="Calc" icon={Calculator} onClick={() => launchApp('calc')} />
+              <AppIcon label="Messenger" icon={MessageCircle} onClick={() => launchApp('messages')} />
+              <AppIcon label="Camera" icon={Camera} onClick={() => launchApp('camera')} />
             </div>
+
+            {/* Quick Search Pill */}
+            <div
+              onClick={() => launchApp('goolag')}
+              className="w-full h-12 bg-white/10 backdrop-blur-xl rounded-full mb-4 flex items-center px-4 gap-3 text-white/50 border border-white/5 active:scale-95 transition-transform"
+            >
+              <Globe size={18} />
+              <span className="text-sm font-medium">Search Goolag...</span>
+            </div>
+
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1"></div>
+          {/* Dock */}
+          <Dock items={[
+            { icon: UserPlus, onClick: () => launchApp('messages') },
+            { icon: MessageCircle, onClick: () => launchApp('messages') },
+            { icon: Globe, onClick: () => setOpenApp('goolag') },
+            { icon: Activity, onClick: () => setOpenApp('sysmon') }
+          ]} />
 
-          {/* App Grid - Centered Lower */}
-          <div className="grid grid-cols-4 gap-x-5 gap-y-8 place-items-center mb-8">
-            <AppIcon label="Web" icon={Globe} onClick={() => launchApp('goolag')} />
-            <AppIcon label="Term" icon={Terminal} onClick={() => launchApp('terminal')} />
-            <AppIcon label="TubeArch" icon={Youtube} onClick={() => launchApp('youtube')} />
-            <AppIcon label="Stream" icon={Twitch} onClick={() => launchApp('twitch')} />
+        </motion.div>
 
-            <AppIcon label="Settings" icon={Settings} onClick={() => launchApp('settings')} />
-            <AppIcon label="Music" icon={Music} onClick={() => launchApp('music')} />
-            <AppIcon label="Calc" icon={Calculator} onClick={() => launchApp('calc')} />
-            <AppIcon label="Camera" icon={Camera} onClick={() => launchApp('camera')} />
-          </div>
+        {/* 4. Overlays */}
+        <NotificationTray />
+        <ControlCenter
+          isOpen={isControlCenterOpen}
+          onClose={() => setIsControlCenterOpen(false)}
+          onLock={() => { setIsLocked(true); setIsControlCenterOpen(false); }}
+        />
 
-          {/* Quick Search Pill */}
-          <div
-            onClick={() => launchApp('goolag')}
-            className="w-full h-12 bg-white/10 backdrop-blur-xl rounded-full mb-4 flex items-center px-4 gap-3 text-white/50 border border-white/5 active:scale-95 transition-transform"
-          >
-            <Globe size={18} />
-            <span className="text-sm font-medium">Search Goolag...</span>
-          </div>
+        {/* 5. Apps */}
+        <Window isOpen={openApp === 'goolag'} onClose={closeApp} title="Arc Web">
+          <GoolagApp launchApp={launchApp} />
+        </Window>
 
-        </div>
+        <Window isOpen={openApp === 'terminal'} onClose={closeApp} title="Terminal">
+          <TerminalApp />
+        </Window>
 
-        {/* Dock */}
-        <Dock items={[
-          { icon: Phone, onClick: () => { } },
-          { icon: MessageCircle, onClick: () => { } },
-          { icon: Globe, onClick: () => setOpenApp('goolag') },
-          { icon: Activity, onClick: () => setOpenApp('sysmon') }
-        ]} />
+        <Window isOpen={openApp === 'settings'} onClose={closeApp} title="Settings">
+          <SettingsApp />
+        </Window>
 
-      </motion.div>
+        <Window isOpen={openApp === 'calc'} onClose={closeApp} title="Calculator">
+          <CalculatorApp />
+        </Window>
 
-      {/* 4. Overlays */}
-      <NotificationTray />
-      <ControlCenter
-        isOpen={isControlCenterOpen}
-        onClose={() => setIsControlCenterOpen(false)}
-        onLock={() => { setIsLocked(true); setIsControlCenterOpen(false); }}
-      />
+        <Window isOpen={openApp === 'gallery'} onClose={closeApp} title="Gallery">
+          <GalleryApp />
+        </Window>
 
-      {/* 5. Apps */}
-      <Window isOpen={openApp === 'goolag'} onClose={closeApp} title="Arc Web">
-        <GoolagApp launchApp={launchApp} />
-      </Window>
+        <Window isOpen={openApp === 'sysmon'} onClose={closeApp} title="System Monitor">
+          <SystemMonitorApp stats={sysStats} serverStatus={serverStatus} />
+        </Window>
 
-      <Window isOpen={openApp === 'terminal'} onClose={closeApp} title="Terminal">
-        <TerminalApp />
-      </Window>
+        <Window isOpen={openApp === 'music'} onClose={closeApp} title="Music Player">
+          <MusicApp />
+        </Window>
 
-      <Window isOpen={openApp === 'settings'} onClose={closeApp} title="Settings">
-        <SettingsApp />
-      </Window>
+        <Window isOpen={openApp === 'youtube'} onClose={closeApp} title="TubeArch (Proxy)">
+          <YoutubeApp initialArgs={appArgs} />
+        </Window>
 
-      <Window isOpen={openApp === 'calc'} onClose={closeApp} title="Calculator">
-        <CalculatorApp />
-      </Window>
+        <Window isOpen={openApp === 'twitch'} onClose={closeApp} title="Twitch">
+          <IframeApp url="https://player.twitch.tv/?channel=lofi_girl&parent=localhost" title="Twitch" />
+        </Window>
 
-      <Window isOpen={openApp === 'gallery'} onClose={closeApp} title="Gallery">
-        <GalleryApp />
-      </Window>
+        <Window isOpen={openApp === 'weather'} onClose={closeApp} title="Weather">
+          <WeatherApp coords={coords} locationName={weather.location} />
+        </Window>
 
-      <Window isOpen={openApp === 'sysmon'} onClose={closeApp} title="System Monitor">
-        <SystemMonitorApp stats={sysStats} serverStatus={serverStatus} />
-      </Window>
+        {/* Camera App (Custom Fullscreen Mode) */}
+        <AnimatePresence>
+          {openApp === 'camera' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute inset-0 z-40 bg-black"
+            >
+              <CameraApp onClose={() => setOpenApp(null)} onOpenGallery={() => setOpenApp('gallery')} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      <Window isOpen={openApp === 'music'} onClose={closeApp} title="Music Player">
-        <MusicApp />
-      </Window>
-
-      <Window isOpen={openApp === 'youtube'} onClose={closeApp} title="TubeArch (Proxy)">
-        <YoutubeApp initialArgs={appArgs} />
-      </Window>
-
-      <Window isOpen={openApp === 'twitch'} onClose={closeApp} title="Twitch">
-        <IframeApp url="https://player.twitch.tv/?channel=lofi_girl&parent=localhost" title="Twitch" />
-      </Window>
-
-      <Window isOpen={openApp === 'weather'} onClose={closeApp} title="Weather">
-        <WeatherApp coords={coords} locationName={weather.location} />
-      </Window>
-
-      {/* Camera App (Custom Fullscreen Mode) */}
-      <AnimatePresence>
-        {openApp === 'camera' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute inset-0 z-40 bg-black"
-          >
-            <CameraApp onClose={() => setOpenApp(null)} onOpenGallery={() => setOpenApp('gallery')} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-    </div>
-  )
+      </div>
+      )
 }
 
-export default App
+      export default App

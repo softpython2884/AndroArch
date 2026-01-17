@@ -174,23 +174,55 @@ app.get('/api/youtube/stream', async (req, res) => {
 
 // WebSocket Connection
 let connectedClients = 0;
+const phoneBook = new Map(); // phone -> socketId
 
 const { exec } = require('child_process');
 
 io.on('connection', (socket) => {
   connectedClients++;
-  // console.log('A user connected:', socket.id, '| Total:', connectedClients);
-
-  // Broadcast updated client count to all
   io.emit('client_count', connectedClients);
-
-  // Send initial status
   socket.emit('system_status', { cpu: 12, ram: 45 });
+
+  // Identity Registration
+  socket.on('register_phone', (phone) => {
+    console.log(`[Identity] Registering ${phone} to ${socket.id}`);
+    phoneBook.set(phone, socket.id);
+    // Broadcast active nodes (optional/limited for privacy)
+    io.emit('active_nodes', Array.from(phoneBook.keys()));
+  });
+
+  // Direct Messaging
+  socket.on('send_message', (data) => {
+    const { to, message, from } = data;
+    const targetSocketId = phoneBook.get(to);
+
+    console.log(`[NeuralLink] ${from} -> ${to}: ${message}`);
+
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('receive_message', {
+        from,
+        message,
+        timestamp: new Date().toISOString()
+      });
+      // Acknowledge to sender
+      socket.emit('message_sent', { to, success: true });
+    } else {
+      socket.emit('message_sent', { to, success: false, error: 'Node Offline' });
+    }
+  });
 
   socket.on('disconnect', () => {
     connectedClients--;
-    // console.log('User disconnected:', socket.id, '| Total:', connectedClients);
+    // Cleanup phone registration
+    for (let [phone, id] of phoneBook.entries()) {
+      if (id === socket.id) {
+        phoneBook.delete(phone);
+        console.log(`[Identity] Node Offline: ${phone}`);
+        break;
+      }
+    }
     io.emit('client_count', connectedClients);
+    io.emit('active_nodes', Array.from(phoneBook.keys()));
   });
 
   // Remote Command Execution
