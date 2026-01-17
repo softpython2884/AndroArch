@@ -3,15 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Unlock, Delete, ChevronUp, BellRing, Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { GlassPane } from '../ui/GlassPane';
 import { useNotifications } from '../../context/NotificationContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const LockScreen = ({ isLocked, onUnlock }) => {
     const { notifications } = useNotifications();
+    const { settings } = useSettings();
     const [pin, setPin] = useState("");
     const [error, setError] = useState(false);
     const [showPin, setShowPin] = useState(false);
     const [time, setTime] = useState(new Date());
 
-    const CORRECT_PIN = "1234";
+    const CORRECT_PIN = settings.pin;
 
     const getIcon = (type) => {
         switch (type) {

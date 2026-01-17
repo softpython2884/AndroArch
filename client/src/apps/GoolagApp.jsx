@@ -13,8 +13,9 @@ const GoolagApp = () => {
 
         setLoading(true);
         setResults([]); // Clear previous
+        const serverHost = `${window.location.protocol}//${window.location.hostname}:3000`;
         try {
-            const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+            const res = await fetch(`${serverHost}/api/search?q=${encodeURIComponent(query)}`);
             const data = await res.json();
             setResults(data.results || []);
         } catch (err) {
@@ -41,7 +42,7 @@ const GoolagApp = () => {
         return (
             <div className="flex flex-col h-full bg-white text-black">
                 {/* Browser Toolbar */}
-                <div className="flex items-center gap-2 p-3 bg-gray-100 border-b border-gray-300 shadow-sm z-10">
+                <div className="flex items-center gap-2 p-3 bg-gray-100 border-b border-gray-300 shadow-sm z-20">
                     <button onClick={goBack} className="p-2 hover:bg-gray-200 rounded-full text-black transition-colors active:scale-95">
                         <ArrowLeft size={18} />
                     </button>
@@ -57,9 +58,9 @@ const GoolagApp = () => {
                 {/* Web Content */}
                 <iframe
                     src={currentUrl}
-                    className="flex-1 w-full h-full border-none bg-white"
+                    className="flex-1 w-full h-full border-none bg-white z-10"
                     title="Goolag Browser"
-                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals allow-downloads"
                     referrerPolicy="no-referrer"
                 />
             </div>

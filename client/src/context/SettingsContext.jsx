@@ -12,9 +12,11 @@ export const SettingsProvider = ({ children }) => {
             brightness: 100,
             volume: 80,
             theme: 'dark', // 'dark' | 'light' | 'amoled'
+            amoled: false,
             wifi: true,
             bluetooth: true,
-            wallpaper: null // null uses default
+            wallpaper: null, // null uses default
+            pin: '1234'
         };
     });
 
