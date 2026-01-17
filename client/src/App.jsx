@@ -165,7 +165,7 @@ function App() {
     return () => socket.disconnect();
   }, []);
 
-  // Connect to Backend ...
+  // Connect to Backend
 
   return (
     <MessagingProvider socket={socketRef.current}>
@@ -233,7 +233,6 @@ function App() {
               <AppIcon label="Settings" icon={Settings} onClick={() => launchApp('settings')} />
               <AppIcon label="Music" icon={Music} onClick={() => launchApp('music')} />
               <AppIcon label="Calc" icon={Calculator} onClick={() => launchApp('calc')} />
-              <AppIcon label="Messenger" icon={MessageCircle} onClick={() => launchApp('messages')} />
               <AppIcon label="Camera" icon={Camera} onClick={() => launchApp('camera')} />
             </div>
 
@@ -307,6 +306,10 @@ function App() {
           <WeatherApp coords={coords} locationName={weather.location} />
         </Window>
 
+        <Window isOpen={openApp === 'messages'} onClose={closeApp} title="Messenger">
+          <MessagingApp />
+        </Window>
+
         {/* Camera App (Custom Fullscreen Mode) */}
         <AnimatePresence>
           {openApp === 'camera' && (
@@ -322,7 +325,8 @@ function App() {
         </AnimatePresence>
 
       </div>
-      )
+    </MessagingProvider>
+  )
 }
 
-      export default App
+export default App
