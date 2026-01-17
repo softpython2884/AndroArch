@@ -75,8 +75,11 @@ function App() {
 
   // Connect to Backend & Fetch Weather
   useEffect(() => {
+    // Dynamic Host Discovery
+    const serverHost = `${window.location.protocol}//${window.location.hostname}:3000`;
+
     // Socket
-    const socket = io('http://localhost:3000');
+    const socket = io(serverHost);
     socketRef.current = socket;
 
     socket.on('connect', () => {
@@ -104,7 +107,7 @@ function App() {
     const fetchWeatherData = async (lat, lon) => {
       // 1. Fetch Location
       try {
-        const geoRes = await fetch(`http://localhost:3000/api/weather/geocoding?lat=${lat}&lon=${lon}`);
+        const geoRes = await fetch(`${serverHost}/api/weather/geocoding?lat=${lat}&lon=${lon}`);
         const geoData = await geoRes.json();
 
         // Extended city detection

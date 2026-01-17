@@ -11,7 +11,8 @@ function App() {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:3000');
+    const serverHost = `${window.location.protocol}//${window.location.hostname}:3000`;
+    const newSocket = io(serverHost);
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

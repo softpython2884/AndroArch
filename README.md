@@ -1,54 +1,77 @@
-# AndroArch
+# AndroArch 🛰️💀🔥
 
-> **Status:** Pre-Alpha / Prototype
-> **Codename:** "Cyber-Nomad"
+> **AndroArch** is a modular, high-fidelity cyberpunk OS ecosystem designed for "Hacker Nomads". It turns your phone into a portable sub-OS client while your laptop/tablet acts as the primary Neural Node.
 
-## 📑 Overview
-AndroArch is a split-node architecture system designed for a "Cyberpunk / Hacker Nomad" experience. It turns a tablet into a powerful server/admin node and a phone into a sleek, "Sub-OS" client interface.
+![Cyberpunk Interface](https://img.shields.io/badge/Interface-Arch_Noir-blueviolet?style=for-the-badge)
+![Deployment](https://img.shields.io/badge/Deployment-Linux_/_Windows-blue?style=for-the-badge)
+![Network](https://img.shields.io/badge/Network-P2P_Messaging-green?style=for-the-badge)
 
-## 🏗 Architecture
+---
 
-### 1. Server (The Brain) - `/server`
-- **Role:** Backend Logic, Proxy, System Monitor.
-- **Tech:** Node.js, Express, Socket.io.
-- **Functions:** 
-  - Host for API & WebSockets.
-  - "Goolag" Proxy (Gateway for the client).
+## 🏗️ Architecture
 
-### 2. Client (Sub-OS) - `/client`
-- **Role:** The "Phone" Interface.
-- **Tech:** React, Vite, Tailwind, Framer Motion.
-- **Design:** High-tech, localized, minimalist UI.
+AndroArch is divided into three distinct modules:
 
-### 3. Admin - `/admin`
-- **Role:** The "Tablet" Dashboard.
-- **Tech:** React, Vite, Tailwind.
-- **Functions:** Monitoring connectivity, bandwidth, and logs.
+1.  **🛰️ The Server (Neural Node)**:
+    *   Node.js backend.
+    *   Handles P2P message routing (Neural Link).
+    *   Proxies "Goolag" searches and YouTube streams.
+    *   Monitors system vitals (CPU, RAM).
+2.  **📱 The Client (Mobile Sub-OS)**:
+    *   React + Tailwind + Framer Motion.
+    *   High-fidelity mobile UI with Arch Linux aesthetics.
+    *   Features: Messenger, MusicPlayer, Camera, Goolag Web, Youtube (TubeArch), Weather, and Terminal.
+3.  **🖥️ The Admin (Command Center)**:
+    *   Dedicated monitoring dashboard.
+    *   Real-time node statistics and global emergency broadcasts.
 
-## 🚀 Getting Started
+---
 
-### Windows (Dev)
-Run the auto-launcher to start all 3 services in separate terminals:
-```cmd
-dev.cmd
-```
+## 🚀 Quick Start
 
-### Termux / Linux
-Each module has its own `start.sh` for individual deployment on devices.
+### 1. Prerequisites
+*   [Node.js](https://nodejs.org/) (Project tested on Node 20+)
+*   Linux (Recommended) or Windows.
 
+### 2. Installation
 ```bash
-# On Tablet (Server)
-cd server && ./start.sh
+# Clone the repository
+git clone https://github.com/youruser/AndroArch.git
+cd AndroArch
 
-# On Tablet (Admin)
-cd admin && ./start.sh
+# Auto-setup (Linux)
+chmod +x scripts/linux/setup.sh
+./scripts/linux/setup.sh
 
-# On Phone (Client)
-cd client && ./start.sh
+# Manual (Windows)
+# Run 'npm install' in /server, /client, and /admin
 ```
 
-## 🔌 Connection Setup (Dev)
-1. **Server** runs on `localhost:3000`.
-2. **Client** connects to `http://localhost:3000`.
-3. In a real scenario (USB Tethering), use SSH Tunneling on the phone:
-   `ssh -L 8080:localhost:3000 user@192.168.x.x`
+### 3. Launch
+*   **Linux**: `./scripts/linux/launcher.sh`
+*   **Windows**: Run `npm run dev` in each of the three directories.
+
+---
+
+## 📡 Connectivity
+
+AndroArch is designed to be accessed from a phone. Here are the 4 recommended link methods:
+
+| Method | Latency | Complexity | Description |
+| :--- | :--- | :--- | :--- |
+| **Hotspot** | Low | Very Easy | PC connects to phone's Wi-Fi hotspot. |
+| **USB Tethering** | Minimal | Medium | Phone connects via USB cable (High speed + Charging). |
+| **Server AP** | Low | Medium | PC creates own Wi-Fi network for clients. |
+| **Bluetooth PAN**| High | Expert | Experimental slow-link for emergency data. |
+
+---
+
+## 🛠️ Tech Stack
+*   **Frontend**: React 19, Vite, TailwindCSS v3, Framer Motion, Lucide Icons.
+*   **Backend**: Node.js, Express, Socket.io, Systeminformation.
+*   **APIs**: Open-Meteo (Weather), DuckDuckGo (Goolag Proxy), ytsr/ytdl (YouTube Proxy).
+
+---
+
+## 📜 License
+MIT - Created for the Hacker Nomad lifestyle. Stay safe out there. 💀⚡
